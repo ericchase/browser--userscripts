@@ -4,11 +4,11 @@
 // @version         0.1
 // @author          https://github.com/ericchase
 // @description     Clicking the github logo (aka, the octicon) takes the user to his or her profile instead of the dashboard.
-// @source          https://github.com/ericchase/userscripts/
+// @source          https://github.com/ericchase/userscripts/tree/master/github.com-logo--links-to-profile
 // @icon
 // @icon64
 // @updateURL
-// @downloadURL
+// @downloadURL     https://greasyfork.org/en/scripts/32087-github-com-logo-links-to-profile
 // @supportURL      https://github.com/ericchase/userscripts/issues
 // @include         https://github.com/*
 // @match

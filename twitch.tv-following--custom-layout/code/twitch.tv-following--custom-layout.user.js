@@ -8,7 +8,7 @@
 // @icon
 // @icon64
 // @updateURL
-// @downloadURL
+// @downloadURL     https://greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout
 // @supportURL      https://github.com/ericchase/userscripts/issues
 // @include         https://www.twitch.tv/directory/following*
 // @match
