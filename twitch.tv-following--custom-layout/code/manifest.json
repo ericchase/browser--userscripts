@@ -1,0 +1,13 @@
+{
+    "name": "twitch.tv-following--custom-layout",
+    "description": "A Tampermonkey script to customize the layout of the user's twitch.tv/directory/following page.",
+    "version": "0.1",
+    "manifest_version": 2,
+    "content_scripts": [
+        {
+            "matches": [ "https://www.twitch.tv/directory/following*" ],
+            "js": [ "twitch.tv-following--custom-layout.user.js" ],
+            "run_at": "document_end"
+        }
+    ]
+}
