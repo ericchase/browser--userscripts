@@ -88,7 +88,7 @@ function update(mutations) {
 
     var logo = document.querySelector("body > div.position-relative.js-header-wrapper > div.header > div > div > div:nth-child(1) > a");
 
-    // change logo's link
+    // change the logo's link
     logo.setAttribute("href", url_profile);
 
 }
