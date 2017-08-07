@@ -1,7 +1,7 @@
 # twitch.tv-following--custom-layout
 This script customizes the layout of the user's [twitch.tv/directory/following](https://www.twitch.tv/directory/following) page.
 
-I have also published this script at [greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout](https://greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout).
+It is also published at [greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout](https://greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout).
 
 Notes
 -----
