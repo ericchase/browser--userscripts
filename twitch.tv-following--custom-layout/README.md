@@ -1,12 +1,11 @@
 # twitch.tv-following--custom-layout
-A [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) script to customize the layout of the user's [twitch.tv/directory/following](https://www.twitch.tv/directory/following) page.
+This script customizes the layout of the user's [twitch.tv/directory/following](https://www.twitch.tv/directory/following) page.
 
-Can also be installed from [greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout](https://greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout).
+I have also published this script at [greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout](https://greasyfork.org/en/scripts/32006-twitch-tv-following-custom-layout).
 
 Notes
 -----
-This script is also compatible with Chrome directly as an extension.<br>
-Chrome simply requires the manifest.json file as filled out.
+Chrome requires the manifest.json to run this script as a native extension.
 
 Description
 -----------
@@ -20,7 +19,7 @@ Current Features:
 
 Feel free to modify the code to your liking.<br>
 Please mention your updates, issues, and complaints on my github.<br>
-https://github.com/ericchase/twitch.tv-following--custom-layout/issues
+https://github.com/ericchase/userscripts/issues
 
 Comparison
 
