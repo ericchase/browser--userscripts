@@ -1,2 +1,1 @@
-# userscripts
-A repo full of userscripts made by myself for Google Chrome.
+This repo will house any userscripts that I myself have made and work on. I use [Google Chrome](https://www.google.com/chrome/browser/desktop/index.html), so my objective is to enhance the Chrome browser experience. [TamperMonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) is the target userscript manager. In theory, these can run in other userscript managers, and even as a native Chrome extension, given the right adjustments.
