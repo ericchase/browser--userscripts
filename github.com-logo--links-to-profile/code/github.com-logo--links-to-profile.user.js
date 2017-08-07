@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            github.com-logo--links-to-profile
 // @namespace       https://github.com/ericchase
-// @version         0.1
+// @version         0.2
 // @author          https://github.com/ericchase
 // @description     Clicking the github logo (aka, the octicon) takes the user to his or her profile instead of the dashboard.
 // @source          https://github.com/ericchase/userscripts/tree/master/github.com-logo--links-to-profile
