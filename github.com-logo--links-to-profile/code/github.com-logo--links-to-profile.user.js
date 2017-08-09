@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            github.com-logo--links-to-profile
 // @namespace       https://github.com/ericchase
-// @version         0.2
+// @version         0.3
 // @author          https://github.com/ericchase
 // @description     Clicking the github logo (aka, the octicon) takes the user to his or her profile instead of the dashboard.
 // @source          https://github.com/ericchase/userscripts/tree/master/github.com-logo--links-to-profile
@@ -25,7 +25,6 @@
 
 var target;
 var config;
-var observer;
 
 
 // The setInterval() function with a high frequency is used to hook a
@@ -50,9 +49,9 @@ var observer;
                     characterData: true,
                     subtree: true
                 };
-                observer = new MutationObserver(update);
+                var observer = new MutationObserver(update);
                 observer.observe(target, config);
-                update(null);
+                update(null, observer);
             }
         },
         50
@@ -60,21 +59,16 @@ var observer;
 })();
 
 
-function update(mutations) {
-
-    observer.disconnect();
-
+function update(mutations, observer) {
 
     // check to see if logo has loaded
     if (document.querySelector("body > div.position-relative.js-header-wrapper > div.header > div > div > div:nth-child(1) > a") === null) {
-        observer.observe(target, config);
         return;
     }
 
 
     // check to see if profile button has loaded
     if (document.querySelector("#user-links > li:nth-child(3) > a") === null) {
-        observer.observe(target, config);
         return;
     }
 
@@ -86,9 +80,13 @@ function update(mutations) {
         return;
     }
 
+
     var logo = document.querySelector("body > div.position-relative.js-header-wrapper > div.header > div > div > div:nth-child(1) > a");
 
     // change the logo's link
-    logo.setAttribute("href", url_profile);
+    if (logo.getAttribute("href") != url_profile) {
+        observer.disconnect();
+        logo.setAttribute("href", url_profile);
+    }
 
 }
