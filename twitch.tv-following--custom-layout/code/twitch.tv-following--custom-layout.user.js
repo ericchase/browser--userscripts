@@ -106,6 +106,8 @@ function check()
 }
 
 
+var live_list = [];
+
 function update_cards(list)
 {
 
@@ -140,6 +142,24 @@ function update_cards(list)
         }
 
 
+        // Modification: Remove 'Live Hosts' that are alread in 'Live Channels'
+        // Affects: All under 'Live Hosts'
+        // Inspired by a BetterTTV feature request at
+        // https://github.com/night/BetterTTV/issues/1829
+        query = list[n].querySelector(".js-channel-link.ember-view").innerText;
+        if (list[n].querySelector(".card__img > a").getAttribute("data-tt_content") == "live_channel")
+        {
+            live_list.push(query);
+        } else
+        {
+            if (live_list.indexOf(query) != -1)
+            {
+                list[n].parentNode.parentNode.remove();
+            }
+        }
+        //
+        //
+        //
         // Modification: Add large name above image preview
         // Affects: All
         div = document.createElement('div');
@@ -147,7 +167,7 @@ function update_cards(list)
         div.style.padding = '10px 0px';
         div.style.color = '#000000'; // font color = black
         div.style.fontSize = '200%';
-        div.innerText = list[n].querySelector(".js-channel-link.ember-view").innerText;
+        div.innerText = query;
         // place name on top
         list[n].insertBefore(div, list[n].childNodes[0]);
 
