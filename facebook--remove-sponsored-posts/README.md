@@ -1,4 +1,4 @@
-# `facebook.com--remove-sponsored-posts`
+# facebook--remove-sponsored-posts
 This script removes sponsored posts from your facebook live feed.
 
 If you experience even more lag than what Facebook already gives you, you have my condolences.
