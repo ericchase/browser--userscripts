@@ -1,3 +1,5 @@
+CURRENTLY BROKEN
+
 # twitch-tv-following--custom-layout
 This script customizes the layout of the user's [twitch.tv/directory/following](https://www.twitch.tv/directory/following) page.
 
