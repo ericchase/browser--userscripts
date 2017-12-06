@@ -1,4 +1,4 @@
-# 'facebook.com--remove-sponsored-posts'
+# `facebook.com--remove-sponsored-posts`
 This script removes sponsored posts from your facebook live feed.
 
 
