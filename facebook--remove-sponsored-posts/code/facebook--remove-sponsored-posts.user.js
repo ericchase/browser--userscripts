@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name            facebook.com--remove-sponsored-posts
+// @name            facebook--remove-sponsored-posts
 // @namespace       https://github.com/ericchase
 // @version         0.1
 // @author          https://github.com/ericchase
 // @description     Tries to remove posts that have the "Sponsored" tag.
-// @source          https://github.com/ericchase/userscripts/tree/master/facebook.com--remove-sponsored-posts
+// @source          https://github.com/ericchase/userscripts/tree/master/facebook--remove-sponsored-posts
 // @icon
 // @icon64
 // @updateURL
@@ -23,26 +23,45 @@
 // ==/UserScript==
 
 
+// Above is the default heading for Tampermonkey userscripts that I personally use.
+// It includes most of the important @tributes (attributes).
 
+// This is the default function provided by a new Tampermonkey userscript.
 (function () {
+    // The 'use strict' clause is a javascript option and changes the way certain things work.
+    // I don't know the consequences of not using it, so I let it be.
     'use strict';
+
+    // A consequence of 'use strict' is that variables are loaded differently.
+    // As a workaround, I initialize any global variables that need to be preloaded first.
+    //      Note that functions that have this problem.
     preload();
+
+    // The 'main' function is where the actual code goes.
+    // Neither of these are necessary, but it makes for easy reading.
     main();
 })();
 
+// The bind function is a javascript method on certain prototypes (I don't know which).
+// It's akin to partial function application in other languages.
+// This is just a wrapper I found useful for this script. See application below.
 function bind(object, functor)
 {
     return object[functor].bind(object);
 }
 
-// strict mode changes the way variables are loaded
-// this is a little workaround for now
-// note that functions don't have this problem
 var Stream;
 var Watch;
 
 function preload()
 {
+    // This class is meant to mimic the Java SE 8 stream interface.
+    // References:
+    //      https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html
+    //      https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html
+    //      https://docs.oracle.com/javase/8/docs/api/java/util/stream/IntStream.html
+    //
+    // I've only included the functions that I use for this script.
     Stream = class
     {
         constructor()
@@ -50,6 +69,8 @@ function preload()
             this.elements = [];
         }
 
+        // Returns a sequential ordered stream whose elements are the specified values.
+        // For this script, any javascript object that has maps for 1..n and a 'length' value.
         static of(array)
         {
             let newStream = new Stream();
@@ -58,6 +79,21 @@ function preload()
             return newStream;
         }
 
+        // Returns whether any elements of this stream match the provided predicate.
+        // A predicate is a boolean-valued function (with usually one argument).
+        //      In short, if the conditional applies to the argument, return true.
+        anyMatch(predicate)
+        {
+            let list = this.elements;
+            for(let n in list)
+                if(predicate(list[n]))
+                    return true;
+            return false;
+        }
+
+        // Returns a stream consisting of the elements of this stream that match the given predicate.
+        // A predicate is a boolean-valued function (with usually one argument).
+        //      In short, if the conditional applies to the argument, return true.
         filter(predicate)
         {
             let list = this.elements;
@@ -68,29 +104,27 @@ function preload()
             return filteredStream;
         }
 
-        map(functor)
+        // Performs an action for each element of this stream.
+        // The order is not guaranteed in Java, but in javascript, it's your guess.
+        // A consumer is an operation that accepts a single input argument and returns no result.
+        //      Unlike most other functional interfaces, Consumer is expected to operate via side-effects.
+        forEach(consumer)
         {
             let list = this.elements;
             for(let n in list)
-                functor(list[n]);
-        }
-
-        anyMatch(predicate)
-        {
-            let list = this.elements;
-            for(let n in list)
-                if(predicate(list[n]))
-                    return true;
-            return false;
+                consumer(list[n]);
         }
     };
-    
+
+
+    // This class was meant to encapsulate the MutationObserver concept.
+    // It may or may not stick around.
     Watch = class
     {
         static childList(node, callback)
         {
             let handler = function(records, observer) {
-                Stream.of(records).map(
+                Stream.of(records).forEach(
                     (record) => {
                         callback(record.target, observer);
                     }
@@ -112,6 +146,11 @@ function main()
 
 
 
+// Uses a MutationObserver to continually search the DOM for the element that corresponds
+//   to the facebook wall feed. Each time the wall is updated, 'lookfor_feed' is called,
+//   which loops through an elements descendants looking for the feed element.
+// Once the feed element is found, another MutationObserver is used to search for any and
+//   all post elements. Once found, it feeds a stream of posts to 'remove_sponsored_posts'.
 function waitfor_feed()
 {
     let feed = null;
@@ -121,7 +160,7 @@ function waitfor_feed()
             if(feed !== null) {
                 observer.disconnect();
                 Watch.childList(feed, (node, observer) => {
-                    Stream.of(lookfor_posts(feed)).map(remove_sponsored_posts);
+                    Stream.of(lookfor_posts(feed)).forEach(remove_sponsored_posts);
                 });
             }
         }
@@ -162,19 +201,6 @@ function lookfor_posts(node)
     return filtered;
 }
 
-function lookfor_sponsored(node)
-{
-    var node_iterator = document.createNodeIterator (
-        node,
-        NodeFilter.SHOW_ELEMENT,
-        (descendant) => {
-            if(Stream.of(sponsored_class_list).anyMatch(bind(descendant.classList, "contains")))
-                return NodeFilter.FILTER_ACCEPT;
-        }
-    );
-    return node_iterator.nextNode();
-}
-
 
 
 var sponsored_class_list = [];
@@ -213,7 +239,9 @@ function get_sponsored_class_list()
 }
 
 
-
+// Searches a post for any element that contain a sponsored css class (which is found via the
+//   'get_sponsored_class_list' function). If the post is sponsored, it is fed into the 'remove'
+//   function.
 function remove_sponsored_posts(node)
 {
     if(sponsored_class_list.length !== 3)
@@ -221,6 +249,19 @@ function remove_sponsored_posts(node)
 
     if(lookfor_sponsored(node))
         remove(node);
+}
+
+function lookfor_sponsored(node)
+{
+    var node_iterator = document.createNodeIterator (
+        node,
+        NodeFilter.SHOW_ELEMENT,
+        (descendant) => {
+            if(Stream.of(sponsored_class_list).anyMatch(bind(descendant.classList, "contains")))
+                return NodeFilter.FILTER_ACCEPT;
+        }
+    );
+    return node_iterator.nextNode();
 }
 
 function remove(node)
