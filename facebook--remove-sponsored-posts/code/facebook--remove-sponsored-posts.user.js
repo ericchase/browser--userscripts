@@ -34,7 +34,7 @@
 
     // A consequence of 'use strict' is that variables are loaded differently.
     // As a workaround, I initialize any global variables that need to be preloaded first.
-    //      Note that functions that have this problem.
+    //      Note that functions don't have this problem.
     preload();
 
     // The 'main' function is where the actual code goes.
