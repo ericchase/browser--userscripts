@@ -28,9 +28,11 @@
 
 
 // User Constants
-// Can pick up to 5 for now.
 // "All" is first by default, but theoretically it doesn't have to be.
-let taborder = ["All", "Images", "Videos", "News", "Maps"];
+// You can choose as many or as little as you like, but 3~5 is a good number.
+// ["All", "Images", "Videos", "News", "Maps", "Shopping", "Books", "Flights", "Finance", "Personal"]
+let taborder = ["All", "Images", "Videos"];
+// The tabs you do not include will appear under the 'More' tab.
 
 
 // This is the default function provided by a new Tampermonkey userscript.
