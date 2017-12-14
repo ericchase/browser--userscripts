@@ -3,8 +3,8 @@
 // @namespace       https://github.com/ericchase
 // @version         0.1
 // @author          https://github.com/ericchase
-// @description
-// @source          https://github.com/ericchase/userscripts/
+// @description     Lets the user define a tab order for Google Search's tabbar.
+// @source          https://github.com/ericchase/userscripts/edit/master/google--fixed-search-tabs
 // @icon
 // @icon64
 // @updateURL
@@ -22,6 +22,7 @@
 // @nocompat
 // ==/UserScript==
 
+
 // Above is the default heading for Tampermonkey userscripts that I personally use.
 // It includes most of the important @tributes (attributes).
 
@@ -30,7 +31,6 @@
 // Can pick up to 5 for now.
 // "All" is first by default, but theoretically it doesn't have to be.
 let taborder = ["All", "Images", "Videos", "News", "Maps"];
-
 
 
 // This is the default function provided by a new Tampermonkey userscript.
