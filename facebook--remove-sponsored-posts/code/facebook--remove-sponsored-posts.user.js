@@ -26,6 +26,7 @@
 // Above is the default heading for Tampermonkey userscripts that I personally use.
 // It includes most of the important @tributes (attributes).
 
+
 // This is the default function provided by a new Tampermonkey userscript.
 (function () {
     // The 'use strict' clause is a javascript option and changes the way certain things work.
