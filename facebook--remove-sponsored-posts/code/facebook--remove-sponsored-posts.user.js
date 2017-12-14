@@ -35,7 +35,7 @@
 
     // A consequence of 'use strict' is that variables are loaded differently.
     // As a workaround, I initialize any global variables that need to be preloaded first.
-    //      Note that functions don't have this problem.
+    //      Note that functions that have this problem.
     preload();
 
     // The 'main' function is where the actual code goes.
@@ -51,11 +51,18 @@ function bind(object, functor)
     return object[functor].bind(object);
 }
 
-var Stream;
 var Watch;
 
 function preload()
 {
+    // **UPDATE**
+    //   I didn't realize that the Array object features many of the functions
+    //   that I implemented here. In light of this new knowledge, the Stream class
+    //   will be discontinued for now.
+    //
+    //   I leave it here for future reference.
+    //
+
     // This class is meant to mimic the Java SE 8 stream interface.
     // References:
     //      https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html
@@ -63,7 +70,7 @@ function preload()
     //      https://docs.oracle.com/javase/8/docs/api/java/util/stream/IntStream.html
     //
     // I've only included the functions that I use for this script.
-    Stream = class
+    let Stream = class
     {
         constructor()
         {
@@ -118,25 +125,25 @@ function preload()
     };
 
 
+
     // This class was meant to encapsulate the MutationObserver concept.
     // It may or may not stick around.
     Watch = class
     {
-        static childList(node, callback)
+        static childList({node, subtree, callback})
         {
-            let handler = function(records, observer) {
-                Stream.of(records).forEach(
-                    (record) => {
-                        callback(record.target, observer);
-                    }
-                );
-            };
-
-            (new MutationObserver(handler)).observe( node, {
-                childList: true,
-                subtree: true
-            });
+            (new MutationObserver(callback)).observe(
+                node, {childList: true, subtree: subtree}
+            );
         }
+
+        // Example call:
+
+        // Watch.childList({
+        //     node: document,
+        //     subtree: false,
+        //     callback: function(records, observer) {}
+        // });
     };
 }
 
@@ -155,16 +162,35 @@ function main()
 function waitfor_feed()
 {
     let feed = null;
-    Watch.childList(document.body, (node, observer) => {
-        if(feed === null) {
-            feed = lookfor_feed(node);
-            if(feed !== null) {
-                observer.disconnect();
-                Watch.childList(feed, (node, observer) => {
-                    Stream.of(lookfor_posts(feed)).forEach(remove_sponsored_posts);
-                });
-            }
-        }
+
+    Watch.childList({
+        node: document.body,
+        subtree: true,
+        callback:
+
+        (records, observer) => {
+            Array.from(records).forEach(
+                (record) => {
+                    if(feed === null)
+                    {
+                        feed = lookfor_feed(record.target);
+                        if(feed !== null)
+                        {
+                            observer.disconnect();
+
+                            Watch.childList({
+                                node: feed,
+                                subtree: true,
+                                callback:
+
+                                (records, observer) => {
+                                    Array.from(lookfor_posts(feed)).forEach(remove_sponsored_posts);
+                                }
+                            });
+                        }
+                    }
+                }
+            );}
     });
 }
 
@@ -258,7 +284,7 @@ function lookfor_sponsored(node)
         node,
         NodeFilter.SHOW_ELEMENT,
         (descendant) => {
-            if(Stream.of(sponsored_class_list).anyMatch(bind(descendant.classList, "contains")))
+            if(Array.from(sponsored_class_list).some(bind(descendant.classList, "contains")))
                 return NodeFilter.FILTER_ACCEPT;
         }
     );
