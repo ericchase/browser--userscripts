@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         Twitch: Filter Channels
-// @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  Remove high viewer count channels
-// @author       ericchase
-// @match        https://www.twitch.tv/directory
-// @match        https://www.twitch.tv/directory/*
-// @icon         https://www.google.com/s2/favicons?domain=twitch.tv
-// @grant        none
-// @run-at       document-end
+// @name        Twitch: Filter Channels
+// @description Remove high viewer count channels
+// @namespace   ericchase
+// @version     1.0.0
+// @author      ericchase
+// @match       https://www.twitch.tv/directory
+// @match       https://www.twitch.tv/directory/*
+// @icon        https://www.google.com/s2/favicons?domain=twitch.tv
+// @grant       none
+// @run-at      document-end
 // ==/UserScript==
 
 (function () {

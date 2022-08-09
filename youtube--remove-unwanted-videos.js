@@ -1,16 +1,13 @@
 // ==UserScript==
-// @name        Remove YouTube Videos
-// @namespace   Violentmonkey Scripts
-// @match       https://www.youtube.com/
-// @grant       none
-// @version     1.0
-// @author      -
+// @name        YouTube: Remove Unwanted Videos
 // @description 5/22/2022, 10:37:37 PM
+// @namespace   ericchase
+// @version     1.0.0
+// @author      ericchase
+// @match       *://www.youtube.com/
+// @grant       none
+// @run-at      document-start
 // ==/UserScript==
-
-// some of this code has been adapted from a similar project by a
-// developer known as bubba (aka skaizo)
-
 
 const config = {
     maxAge: parseAge('1 year'),

@@ -1,14 +1,16 @@
 // ==UserScript==
-// @name        Video Zoom
-// @namespace   Violentmonkey Scripts
-// @match       https://*/*
-// @grant       none
-// @version     1.0
-// @author      ericchase
+// @name        *: Video Zoom
 // @description 1/23/2022, 12:58:35 AM
+// @namespace   ericchase
+// @version     1.0.0
+// @author      ericchase
+// @match       *://*/*
+// @grant       none
+// @run-at      document-start
 // ==/UserScript==
 
-const log = (...args) => console.log(...args);
+//const log = (...args) => console.log(...args);
+const log = ()=>{};
 
 class Region {
     constructor(sibling) {
@@ -142,8 +144,6 @@ function setupZoom(video) {
         videoRect = video.getBoundingClientRect();
         const x = event.clientX - videoRect.left + video.offsetLeft;
         const y = event.clientY - videoRect.top + video.offsetTop;
-        console.log(event.clientX, x);
-        console.log(event.clientY, y);
         if (event.clientX < videoRect.left
             || event.clientX > videoRect.left + video.offsetWidth
             || event.clientY < videoRect.top
@@ -216,7 +216,6 @@ function setupZoom(video) {
     function stopMouseUp(event) {
         log('stopMouseUp');
         if (stopNextMouseUp) {
-            console.log('stopNextMouseUp');
             stopNextMouseUp = false;
             event.stopPropagation();
             event.preventDefault();
