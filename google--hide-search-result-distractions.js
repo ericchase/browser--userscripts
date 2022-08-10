@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Google: Hide Extras. Direct Links
+// @name        Google: Hide Search Result Distractions
 // @description 3/19/2022, 7:09:32 PM
 // @namespace   ericchase
 // @version     1.0.0
@@ -118,27 +118,12 @@ function processResults(nodes) {
         }
     }
 }
-function refSwap(event) {
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    const a = event.currentTarget;
-    a.href = a.getAttribute('oref');
-}
-function attachEvent(nodes) {
-    for (const link of rso.querySelectorAll('a')) {
-        link.setAttribute('oref', link.href);
-        link.addEventListener('auxclick', refSwap, { capture: true });
-        link.addEventListener('click', refSwap, { capture: true });
-    }
-}
 
 function findSearchResults(rso) {
     container = rso;
     processResults(rso.querySelectorAll('div.g'));
     waitFor({ selector: 'div.g', root: rso, recursive: true },
         function (nodes) { processResults(nodes); return true; })
-    waitFor({ selector: 'div.g a', root: rso, recursive: true },
-        function (nodes) { attachEvent(nodes); return true; })
 }
 
 (async function main() {
