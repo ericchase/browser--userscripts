@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Google: Result Links Go Directly to URL
+// @name        Google: Direct URL for Search Results
 // @description 8/10/2022, 2:24:13 AM
 // @namespace   ericchase
 // @version     1.0.0
