@@ -11,11 +11,15 @@
 
 const observer = new MutationObserver(callback);
 
-function callback(mutationList, observer) {
+function callback(mutationList) {
     for (const record of mutationList) {
         if (record.target.getAttribute('data-href') !== record.target.getAttribute('href')) {
-            record.target.setAttribute('data-href', record.oldValue);
-            record.target.setAttribute('href', record.oldValue);
+            if (record.oldValue) {
+                record.target.setAttribute('data-href', record.oldValue);
+                record.target.setAttribute('href', record.oldValue);
+            } else {
+                record.target.setAttribute('data-href', record.target.getAttribute('href'));
+            }
         }
     }
 }
@@ -31,10 +35,8 @@ document.addEventListener('auxclick', interceptNavigation, { capture: true });
 document.addEventListener('click', interceptNavigation, { capture: true });
 
 function interceptNavigation(event) {
-    event.stopImmediatePropagation();
-    event.stopPropagation();
     if (event.target.nodeName === 'H3' && event.target.parentNode.nodeName === 'A') {
-        event.preventDefault();
-        event.target.parentNode.click();
+        event.stopImmediatePropagation();
+        event.target.parentNode.setAttribute('href', event.target.parentNode.getAttribute('data-href'));
     }
 }
