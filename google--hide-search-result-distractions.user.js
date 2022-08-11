@@ -1,136 +1,135 @@
 // ==UserScript==
 // @name        Google: Hide Search Result Distractions
-// @description 3/19/2022, 7:09:32 PM
+// @description 8/11/2022, 1:39:30 AM
 // @namespace   ericchase
-// @version     1.0.0
+// @version     2.0.0
 // @author      ericchase
 // @match       *://*.google.com/*
 // @grant       none
 // @run-at      document-start
 // ==/UserScript==
 
-function waitFor({ selector, root = document, recursive = false }, fn) {
-    let count = 0;
-    new MutationObserver(function (_, observer) {
-        const nodes = root.querySelectorAll(selector);
-        if (nodes && nodes.length > count) {
-            count = nodes.length;
-            if (fn && !fn(nodes)) {
-                observer.disconnect();
-            }
-        }
-    }).observe(root, { subtree: !!recursive, childList: true, });
+const SELECTOR = {
+    SEARCH_RESULT_SECTION: '#rso',
+    SEARCH_RESULT_ITEM: 'div.g',
+    SEARCH_RESULT_TITLE: 'a > h3',
+    SEARCH_TRAY_HEADER: 'g-tray-header',
+    BOTTOM_SECTION: '#botstuff',
+    NAVIGATION: 'div[role="navigation"]',
 }
 
-const found = new Set();
-const filtered = new Set();
+// User defined list
+const BANNED_PHRASES = [
+    'best'
+];
 
-function filterNode(node) {
-    if (filtered.has(node) === false) {
-        filtered.add(node);
-        node.style.display = 'none';
-        // console.log('filtered', node);
-    }
-}
-
-function unfilterNode(node) {
-    if (filtered.has(node)) {
-        filtered.delete(node);
-        node.style.display = null;
-        // console.log('un-filtered', node);
-    }
-}
-
-function toggleFilteredNodes() {
-    for (const node of filtered) {
-        if (node.style.display === 'none') {
-            node.style.display = null;
-        } else {
-            node.style.display = 'none';
-        }
-    }
-}
-
-function createScriptButton(tsf) {
-    const toggleButton = document.createElement('button');
-    toggleButton.innerText = 'show';
-    toggleButton.style.cssText = 'cursor: pointer;'
-        + 'border: 1px solid #f0f0f0;'
-        + 'border-radius: 100px;'
-        + 'background-color: #f1f3f4;'
-        + 'width: 60px;'
-        + 'margin: 2px 2px 2px 0px;';
-
-    let enabled = true;
-    toggleButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        enabled = !enabled;
-        toggleButton.innerText = enabled ? 'show' : 'filter';
-        toggleFilteredNodes();
-    }, true);
-
-    tsf.querySelector('button').after(toggleButton);
-}
-
-function checkAncestor(node, fn) {
-    while (node.parentNode)
-        if (fn(node.parentNode))
-            return node;
-        else
-            node = node.parentNode;
-    return undefined;
-}
-
-let container = undefined;
-let overview = undefined;
-function processResults(nodes) {
-    if (!overview) {
-        overview = rso.querySelector('div[id$="tab-overview"]');
-        if (overview) {
-            for (const node of found) {
-                found.delete(node);
-                unfilterNode(node);
-            }
-            container = overview;
-        }
-    }
-
-    for (const child of container.children) {
-        if (child.tagName === 'DIV') {
-            if (child.querySelector('h3')?.innerText === 'Images') continue;
-            if (found.has(child) === false) {
-                found.add(child);
-                filterNode(child);
+// User defined function
+function filterSearchResult(element) {
+    const title = element.querySelector(SELECTOR.SEARCH_RESULT_TITLE)?.textContent.toLowerCase();
+    if (title) {
+        for (const phrase of BANNED_PHRASES) {
+            if (title.includes(phrase)) {
+                element.style.opacity = 0.25;
             }
         }
     }
+}
 
-    for (const node of nodes) {
-        // this is a bit convoluted, but i don't feel like changing it right now
-        const ancestor = checkAncestor(node, p => {
-            if (p === container) return p;
-            if (p.id.startsWith('WEB_ANSWERS_')) return "skip";
-            if (p.textContent.startsWith('People also ask')) return "skip";
+function watchForElement({ selector, root, subtree }, fn) {
+    root ??= document;
+    if (typeof selector !== 'string') return;
+    new MutationObserver(function (records, observer) {
+        for (const record of records) {
+            if (record?.addedNodes?.length === 0) continue;
+            for (const node of record?.addedNodes) {
+                if (node?.constructor?.name !== 'HTMLDivElement') continue;
+                if (node?.matches?.(selector) === false) continue;
+                if (fn?.(node) === false) {
+                    observer.disconnect();
+                    return;
+                }
+            }
+        }
+    }).observe(root, { childList: true, subtree });
+}
+
+function watchForChildren({ selector, root }, fn) {
+    watchForElement({ selector, root, subtree: false }, fn);
+}
+
+function watchForDescendants({ selector, root }, fn) {
+    watchForElement({ selector, root, subtree: true }, fn);
+}
+
+function get(selector) {
+    return new Promise(async function (resolve) {
+        watchForDescendants({ selector }, function (element) {
+            resolve(element);
+            return false;
         });
-        if (ancestor && ancestor !== "skip") {
-            // console.log(ancestor);
-            unfilterNode(ancestor);
-        }
+    });
+}
+
+function hide(element) {
+    element.hidden = true;
+    element.style.display = 'none';
+}
+
+const setOfSearchResults = new Set();
+function processRSOChild(rso, element) {
+    hide(element);
+    watchForDescendants({ selector: SELECTOR.SEARCH_RESULT_ITEM, root: element }, function (element) {
+        setOfSearchResults.add(element);
+        rso.appendChild(element);
+    });
+    for (const child of element.querySelectorAll(SELECTOR.SEARCH_RESULT_ITEM)) {
+        setOfSearchResults.add(child);
+        rso.appendChild(child);
     }
 }
 
-function findSearchResults(rso) {
-    container = rso;
-    processResults(rso.querySelectorAll('div.g'));
-    waitFor({ selector: 'div.g', root: rso, recursive: true },
-        function (nodes) { processResults(nodes); return true; })
+function catchResultTray(result) {
+    watchForDescendants({ selector: SELECTOR.SEARCH_TRAY_HEADER, root: result }, function () {
+        hide(result);
+        return false;
+    });
+    if (result.querySelector(SELECTOR.SEARCH_TRAY_HEADER)) {
+        hide(result);
+    }
 }
 
-(async function main() {
-    waitFor({ selector: '#rso', recursive: true },
-        function (nodes) { findSearchResults(nodes[0]); });
-    waitFor({ selector: '#botstuff', recursive: true },
-        function (nodes) { filterNode(nodes[0].childNodes[0].childNodes[0]); });
-    waitFor({ selector: '#tsf', recursive: true },
-        function (nodes) { createScriptButton(nodes[0]); });
-}());
+get(SELECTOR.SEARCH_RESULT_SECTION).then(rso => {
+    watchForChildren({ selector: '*', root: rso }, function (element) {
+        if (element.matches(SELECTOR.SEARCH_RESULT_ITEM)) {
+            filterSearchResult(element);
+            catchResultTray(element);
+        } else {
+            processRSOChild(rso, element);
+        }
+    });
+    for (const element of [...rso.children]) {
+        processRSOChild(rso, element);
+    }
+});
+
+function processBotStuffChild(botstuff, element) {
+    hide(element);
+    watchForDescendants({ selector: SELECTOR.NAVIGATION, root: element }, function (element) {
+        botstuff.appendChild(element);
+    });
+    for (const child of element.querySelectorAll(SELECTOR.NAVIGATION)) {
+        botstuff.appendChild(child);
+    }
+}
+
+get(SELECTOR.BOTTOM_SECTION).then(botstuff => {
+    watchForChildren({ selector: '*', root: botstuff }, function (element) {
+        if (element.matches(SELECTOR.NAVIGATION)) {
+        } else {
+            processBotStuffChild(botstuff, element);
+        }
+    });
+    for (const element of [...botstuff.children]) {
+        processBotStuffChild(botstuff, element);
+    }
+});
