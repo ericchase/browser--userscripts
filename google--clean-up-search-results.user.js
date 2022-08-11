@@ -2,7 +2,7 @@
 // @name        Google: Clean Up Search Results
 // @description 8/11/2022, 1:39:30 AM
 // @namespace   ericchase
-// @version     2.0.0
+// @version     2.0.1
 // @author      ericchase
 // @match       *://*.google.com/*
 // @grant       none
