@@ -1,8 +1,17 @@
 # userscripts
-This repo will house any userscripts that I myself have made and work on.
+Userscripts for use with the Greasemonkey, Violentmonkey, Tampermonkey, and alternative extensions to modify existing webpages via JavaScript.
 
-I use Chrome and Firefox. These scripts should work in both [TamperMonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) and [Violentmonkey](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/).
+### usage
+To use these, please install a userscript injection extension for your browser.  
+I use the Violentmonkey extension to manage my userscripts.  
+After installing a manager, open any of the userscripts here in GitHub, and press the 'Raw' button.  
+The userscript manager should recognize the file extension and prompt you for installation of the userscript.
 
+### extension
+[Violentmonkey for Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)  
+[Violentmonkey for Chrome]([Violentmonkey for Firefox](https://addons.mozilla.org/en-US/firefox/addon/styl-us/)  
+
+### please
 Use these userscripts and feel free to share them.<br/>
 If improvements can be made, submit an issue!<br/>
 Thanks<br/>
