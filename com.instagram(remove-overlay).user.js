@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        Instagram: Remove Image/Video Overlay on Right Click
-// @description 1/28/2022, 6:07:39 AM
 // @namespace   ericchase
-// @version     1.0.0
-// @author      ericchase
 // @match       https://www.instagram.com/*
-// @grant       none
+// @version     1.0.0
+// @description 1/28/2022, 6:07:39 AM
 // @run-at      document-start
+// @grant       none
+// @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
 function grabImageElement(el) {

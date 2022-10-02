@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        *: Video Zoom
-// @description 1/23/2022, 12:58:35 AM
 // @namespace   ericchase
-// @version     1.0.0
-// @author      ericchase
 // @match       *://*/*
-// @grant       none
+// @version     1.0.0
+// @description 1/23/2022, 12:58:35 AM
 // @run-at      document-start
+// @grant       none
+// @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
 //const log = (...args) => console.log(...args);

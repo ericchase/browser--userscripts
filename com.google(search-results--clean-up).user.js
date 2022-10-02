@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        Google: Clean Up Search Results
-// @description 8/11/2022, 1:39:30 AM
 // @namespace   ericchase
-// @version     2.0.1
-// @author      ericchase
 // @match       *://*.google.com/*
-// @grant       none
+// @version     2.0.1
+// @description 8/11/2022, 1:39:30 AM
 // @run-at      document-start
+// @grant       none
+// @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
 const SELECTOR = {

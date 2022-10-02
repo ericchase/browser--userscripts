@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        YouTube: Remove Unwanted Videos
-// @description 5/22/2022, 10:37:37 PM
 // @namespace   ericchase
-// @version     1.0.0
-// @author      ericchase
 // @match       *://www.youtube.com/
-// @grant       none
+// @version     1.0.0
+// @description 5/22/2022, 10:37:37 PM
 // @run-at      document-start
+// @grant       none
+// @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
 const config = {
