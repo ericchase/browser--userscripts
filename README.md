@@ -1,6 +1,8 @@
 # userscripts
 Userscripts for use with the Greasemonkey, Violentmonkey, Tampermonkey, and alternative extensions to modify existing webpages via JavaScript.
 
+[Static Listing](https://ericchase.github.io/browser--userscripts/)
+
 ### usage
 To use these, please install a userscript injection extension for your browser.  
 I use the Violentmonkey extension to manage my userscripts.  
