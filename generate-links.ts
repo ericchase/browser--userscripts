@@ -10,7 +10,7 @@ const walkEntryList: WalkEntry[] =
         maxDepth: 1
     });
 for (const entry of walkEntryList) {
-    aTagList.push(`<a href="${entry.path}">${entry.path}</a>`);
+    aTagList.push(`<a href="${entry.path}" target="_blank">${entry.path}</a>`);
 }
 
 const original: string = await Deno.readTextFile('index.html');
