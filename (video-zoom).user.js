@@ -10,7 +10,7 @@
 // ==/UserScript==
 
 //const log = (...args) => console.log(...args);
-const log = ()=>{};
+const log = () => { };
 
 class Region {
     constructor(sibling) {
