@@ -2,7 +2,7 @@
 // @name        *: Video Zoom
 // @namespace   ericchase
 // @match       *://*/*
-// @version     1.0.0
+// @version     1.0.1
 // @description 1/23/2022, 12:58:35 AM
 // @run-at      document-start
 // @grant       none

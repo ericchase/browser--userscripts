@@ -2,7 +2,7 @@
 // @name        YouTube: Remove Unwanted Videos
 // @namespace   ericchase
 // @match       *://www.youtube.com/
-// @version     1.0.0
+// @version     1.0.1
 // @description 5/22/2022, 10:37:37 PM
 // @run-at      document-start
 // @grant       none
