@@ -9,7 +9,7 @@ The userscript manager should recognize the file extension and prompt you for in
 
 ### extension
 [Violentmonkey for Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)  
-[Violentmonkey for Chrome]([Violentmonkey for Firefox](https://addons.mozilla.org/en-US/firefox/addon/styl-us/)  
+[Violentmonkey for Chrome](https://addons.mozilla.org/en-US/firefox/addon/styl-us/)  
 
 ### please
 Use these userscripts and feel free to share them.<br/>
