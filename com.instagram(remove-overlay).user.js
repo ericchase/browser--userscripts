@@ -4,7 +4,7 @@
 // @match       https://www.instagram.com/*
 // @version     1.0.1
 // @description 1/28/2022, 6:07:39 AM
-// @run-at      document-start
+// @run-at      document-end
 // @grant       none
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
