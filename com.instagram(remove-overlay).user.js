@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Instagram: Remove Image/Video Overlay on Right Click
 // @namespace   ericchase
-// @match       https://www.instagram.com/*
+// @match       *://www.instagram.com/*
 // @version     1.0.1
 // @description 1/28/2022, 6:07:39 AM
 // @run-at      document-end
