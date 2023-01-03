@@ -2,7 +2,7 @@
 // @name        Twitch: Scroll to Change Volume
 // @namespace   ericchase
 // @match       *://www.twitch.tv/*
-// @version     1.0.0
+// @version     1.0.1
 // @description 1/2/2023, 10:19:38 PM
 // @run-at      document-start
 // @grant       none
@@ -53,7 +53,12 @@ function updateVolume(volume, elVideo, elSlider, elSliderDisplay) {
 	elSliderDisplay.style.setProperty('width', `${elVideo.volume * 100}%`);
 }
 
+let setupComplete = false;
 (function main() {
+	setTimeout(function () {
+		if (!setupComplete) console.log('Twitch: Scroll to Change Volume - Failed to Initialize');
+	}, 10000);
+
 	watchForDescendants({ selector: 'video' },
 		function callback(elVideo) {
 			waitFor('.volume-slider__slider-container')
@@ -91,6 +96,8 @@ function updateVolume(volume, elVideo, elSlider, elSliderDisplay) {
 					});
 
 				elSlider.setAttribute('step', `${settings.volumeStepAmount}`);
+
+				setupComplete = true;
 			});
 
 			return false;
