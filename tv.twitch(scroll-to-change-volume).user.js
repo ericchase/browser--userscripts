@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Twitch: Enhanced Volume Slider
+// @name        Twitch: Scroll to Change Volume
 // @namespace   ericchase
 // @match       *://www.twitch.tv/*
 // @version     1.0.0
@@ -9,16 +9,22 @@
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
+const settings = {
+	volumeStepAmount: 0.05,
+}
+
 const uint8 = new Uint8Array([0]);
 
 function handleMouseWheel(event, elVideo, elSlider, elSliderDisplay) {
-	uint8[0] = elVideo.volume * 10;
+	const min = 0;
+	const max = 1 / settings.volumeStepAmount;
+	uint8[0] = elVideo.volume / settings.volumeStepAmount;
 	if (event.deltaY < 0) {
-		uint8[0] = uint8[0] + 1 > 10 ? 10 : uint8[0] + 1;
+		uint8[0] = uint8[0] + 1 > max ? max : uint8[0] + 1;
 	} else {
-		uint8[0] = uint8[0] - 1 < 0 ? 0 : uint8[0] - 1;
+		uint8[0] = uint8[0] - 1 < min ? min : uint8[0] - 1;
 	}
-	const volume = uint8[0] / 10;
+	const volume = uint8[0] * settings.volumeStepAmount;
 	localStorage.setItem('volume', `${volume}`);
 	elVideo.muted = volume === 0;
 	updateVolume(volume, elVideo, elSlider, elSliderDisplay);
@@ -84,7 +90,7 @@ function updateVolume(volume, elVideo, elSlider, elSliderDisplay) {
 						}
 					});
 
-				elSlider.setAttribute('step', '0.1');
+				elSlider.setAttribute('step', `${settings.volumeStepAmount}`);
 			});
 
 			return false;
