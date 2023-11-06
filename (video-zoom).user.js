@@ -2,7 +2,7 @@
 // @name        *: Video Zoom
 // @namespace   ericchase
 // @match       *://*/*
-// @version     1.0.2
+// @version     1.0.3
 // @description 1/23/2022, 12:58:35 AM
 // @run-at      document-start
 // @grant       none
@@ -135,7 +135,6 @@ function Setup(video) {
    * @property {boolean} data.didZoom
    * @property {boolean} data.isZoomed
    * @property {boolean} data.isZooming
-   * @property {boolean} data.stopNextMouseUp
    * @property {DOMRect|null} videoRect
    */
 
@@ -144,7 +143,6 @@ function Setup(video) {
     didZoom: false,
     isZoomed: false,
     isZooming: false,
-    stopNextMouseUp: false,
     videoRect: null,
   };
 
@@ -175,15 +173,9 @@ function Setup(video) {
       () => window.addEventListener('click', StopClickWhenZoomed, true),
       () => window.removeEventListener('click', StopClickWhenZoomed, true)
     ),
-    StopMouseUp: Toggler(
-      () => window.addEventListener('mouseup', StopMouseUp, true),
-      () => window.removeEventListener('mouseup', StopMouseUp, true)
-    ),
   };
 
   toggles.ClickBegin(true);
-  toggles.StopMouseUp(true);
-  toggles.StopClickWhenZoomed(true);
 
   video.style.transformOrigin = `0 0 0`;
 
@@ -219,8 +211,6 @@ function Setup(video) {
 
   /** @param {MouseEvent} evt */
   function ClickBegin(evt) {
-    Log('ClickBegin');
-
     if (!VideoIsValid(video)) {
       CleanUp();
       return;
@@ -230,6 +220,8 @@ function Setup(video) {
       return;
     }
 
+    Log('ClickBegin');
+
     if (evt.target === video) {
       ConsumeEvent(evt);
     }
@@ -238,7 +230,6 @@ function Setup(video) {
     toggles.ClickMove(true);
 
     data.isZooming = true;
-    data.stopNextMouseUp = false;
     data.videoRect = video.getBoundingClientRect();
 
     const { x, y } = getTranslatedCoords(evt);
@@ -261,9 +252,9 @@ function Setup(video) {
 
         data.didZoom = true;
         data.isZoomed = true;
-        data.stopNextMouseUp = true;
 
         toggles.ResetZoom(true);
+        toggles.StopClickWhenZoomed(true);
 
         ApplyZoomToRect(video, rect);
       }
@@ -293,10 +284,9 @@ function Setup(video) {
     toggles.ResetZoom(false);
 
     if (data.isZoomed) {
-      ConsumeEvent(evt);
+      evt.preventDefault();
 
       data.isZoomed = false;
-      data.stopNextMouseUp = true;
 
       video.style.transform = '';
 
@@ -306,21 +296,11 @@ function Setup(video) {
   }
 
   /** @param {MouseEvent} evt */
-  function StopMouseUp(evt) {
-    Log('StopMouseUp');
-
-    if (data.stopNextMouseUp) {
-      data.stopNextMouseUp = false;
-      ConsumeEvent(evt);
-    }
-  }
-
-  /** @param {MouseEvent} evt */
   function StopClickWhenZoomed(evt) {
-    Log('StopClickWhenZoomed');
-
-    if (data.didZoom) {
+    if (IsLeftClick(evt) && data.didZoom) {
+      Log('StopClickWhenZoomed');
       data.didZoom = false;
+      toggles.StopClickWhenZoomed(false);
       ConsumeEvent(evt);
     }
   }
@@ -341,10 +321,34 @@ function ClickedInside(el, evt) {
   const { left, top } = el.getBoundingClientRect();
   const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = el;
   const { clientX, clientY } = evt;
-  const x = clientX - left + offsetLeft;
-  const y = clientY - top + offsetTop;
-  return x >= left && x <= left + offsetWidth && y >= top && y <= top + offsetHeight;
+  return (
+    clientX >= left + offsetLeft && //
+    clientX <= left + offsetLeft + offsetWidth &&
+    clientY >= top + offsetTop &&
+    clientY <= top + offsetTop + offsetHeight
+  );
 }
+
+// const outline = document.createElement('div');
+// outline.style.position = 'fixed';
+// outline.style.top = '0';
+// outline.style.width = '100px';
+// outline.style.height = '100px';
+// outline.style.outline = '2px solid red';
+// outline.style.zIndex = '1000';
+// outline.style.pointerEvents = 'none';
+// document.body.append(outline);
+// /**
+//  * @param {HTMLElement} el
+//  */
+// function OutlineVideo(el) {
+//   const { left, top } = el.getBoundingClientRect();
+//   const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = el;
+//   outline.style.left = left + offsetLeft + 2 + 'px';
+//   outline.style.top = top + offsetTop + 2 + 'px';
+//   outline.style.width = offsetWidth - 4 + 'px';
+//   outline.style.height = offsetHeight - 4 + 'px';
+// }
 
 function GetVideo() {
   Promise.all([
