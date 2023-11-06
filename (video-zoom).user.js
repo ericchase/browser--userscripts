@@ -284,6 +284,7 @@ function Setup(video) {
     toggles.ResetZoom(false);
 
     if (data.isZoomed) {
+      evt.stopPropagation();
       evt.preventDefault();
 
       data.isZoomed = false;
