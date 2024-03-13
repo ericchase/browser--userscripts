@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name        *: Volume/Scroll
+// @author      ericchase
 // @namespace   ericchase
 // @match       *://*/*
-// @version     1.0.0
+// @version     1.0.1
 // @description 11/4/2023, 11:40:41 PM
 // @run-at      document-start
 // @grant       none

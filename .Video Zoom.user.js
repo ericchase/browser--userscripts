@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name        *: Video Zoom
+// @author      ericchase
 // @namespace   ericchase
 // @match       *://*/*
-// @version     1.0.4
+// @version     1.0.5
 // @description 1/23/2022, 12:58:35 AM
 // @run-at      document-start
 // @grant       none

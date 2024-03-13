@@ -1,8 +1,9 @@
 // ==UserScript==
-// @name        github.com: Favorites Sidebar
+// @name        github.com: Favorite Repositories
+// @author      ericchase
 // @namespace   ericchase
 // @match       https://github.com/*
-// @version     1.0.0
+// @version     1.0.1
 // @description 3/12/2024, 2:56:09 AM
 // @run-at      document-start
 // @grant       none
