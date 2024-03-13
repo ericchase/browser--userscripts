@@ -45,6 +45,12 @@ async function main() {
     const el_Favorites_Margin = document.createElement('div');
     el_Favorites_Margin.classList.add('mt-3');
     el_JSReposContainer.insertBefore(el_Favorites_Margin, el_Top_Title);
+
+    // Remove Top Repositories
+    el_Top_Title.remove();
+    el_Top_Search.remove();
+    el_Top_Repos.remove();
+    el_Top_ShowMore.remove();
   } else {
     const repoUrl = window.location.href;
     // <div id="repository-details-container" data-turbo-replace="">
@@ -207,7 +213,7 @@ function PollForElement(root, query, ms, timeout = 10000) {
     }, timeout);
     (function search() {
       for (const el of root.querySelectorAll(query)) {
-        if (el instanceof HTMLElement && el.style.display !== 'none') {
+        if (el instanceof HTMLElement /*&& el.style.display !== 'none'*/) {
           clearTimeout(abortid);
           return resolve(el);
         }
