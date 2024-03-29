@@ -68,7 +68,7 @@ function VolumeHandler({ video, target }) {
   }
   return Toggler(
     () => target.addEventListener('wheel', listener),
-    () => target.removeEventListener('wheel', listener)
+    () => target.removeEventListener('wheel', listener),
   );
 }
 
@@ -91,7 +91,7 @@ function MuteHandler({ video, target }) {
   }
   return Toggler(
     () => target.addEventListener('mousedown', listener),
-    () => target.removeEventListener('mousedown', listener)
+    () => target.removeEventListener('mousedown', listener),
   );
 }
 
@@ -112,7 +112,7 @@ function MoveHandler() {
     () => {
       document.removeEventListener('contextmenu', contextListener);
       document.removeEventListener('contextmenu', contextListener, true);
-    }
+    },
   );
 
   /** @param {MouseEvent} evt */
@@ -132,7 +132,7 @@ function MoveHandler() {
   }
   const scrollHandler = Toggler(
     () => document.addEventListener('mousemove', scrollListener),
-    () => document.removeEventListener('mousemove', scrollListener)
+    () => document.removeEventListener('mousemove', scrollListener),
   );
 
   /** @param {MouseEvent} evt */
@@ -155,7 +155,7 @@ function MoveHandler() {
       Log('releaseHandler off');
       document.removeEventListener('mouseup', releaseListener);
       document.removeEventListener('mouseup', releaseListener, true);
-    }
+    },
   );
 
   /** @param {MouseEvent} evt */
@@ -175,7 +175,7 @@ function MoveHandler() {
     () => {
       Log('move handler off');
       window.removeEventListener('mousedown', listener);
-    }
+    },
   );
 }
 

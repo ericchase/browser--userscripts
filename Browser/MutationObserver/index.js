@@ -17,7 +17,7 @@ const mutationObserver = new MutationObserver(
       // this applies to ALL observe() calls
       mutationObserver.disconnect();
     }
-  }
+  },
 );
 
 async function main() {

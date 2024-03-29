@@ -12,6 +12,9 @@
 
 async function main() {
   if (window.location.href === 'https://github.com/') {
+    // start as background task
+    const task_getOrdered = dbv1_getOrdered();
+
     // <div class="dashboard-sidebar">
     const el_Sidebar = await PollForElement(document, '.dashboard-sidebar', 100);
     // <div class="Details js-repos-container " data-repository-hovercards-enabled="" role="navigation" aria-label="Repositories">
@@ -35,7 +38,7 @@ async function main() {
 
     // Repo List
     const el_Favorites_Repos = el_Top_Repos.cloneNode();
-    for (const { url } of await dbv1_getOrdered()) {
+    for (const { url } of await task_getOrdered) {
       const item = await CloneRepoListItem(el_Top_Repos, url);
       el_Favorites_Repos.appendChild(item);
     }
@@ -72,12 +75,10 @@ async function main() {
       button.addEventListener('click', async () => {
         try {
           if (await dbv1_get(repoUrl)) {
-            console.log('has');
             if (await dbv1_delete(repoUrl)) {
               button.textContent = 'Favorite';
             }
           } else {
-            console.log("don't has");
             if (await dbv1_add(repoUrl)) {
               button.textContent = 'Unfavorite';
             }
@@ -118,7 +119,7 @@ async function CloneRepoListItem(elList, repoUrl) {
     // User Image
     aTags[0].href = repoUrl;
     const image = aTags[0].querySelectorAll('img')[0];
-    image.src = await getUserAvatar(userName);
+    setUserAvatar(userName, image);
     image.alt = '';
 
     // Repo URL
@@ -183,8 +184,9 @@ async function CloneRepoListItem(elList, repoUrl) {
 const avatarCache = new Map();
 /**
  * @param {string} userName
+ * @param {HTMLImageElement} image
  */
-async function getUserAvatar(userName) {
+async function setUserAvatar(userName, image) {
   if (!avatarCache.has(userName)) {
     const userUrl = 'https://github.com/' + userName;
     const response = await fetch(userUrl);
@@ -194,7 +196,7 @@ async function getUserAvatar(userName) {
     const avatarUrl = html.substring(start, end) + '?s=16&v=4';
     avatarCache.set(userName, avatarUrl);
   }
-  return avatarCache.get(userName) ?? '';
+  image.src = avatarCache.get(userName) ?? '';
 }
 
 /**

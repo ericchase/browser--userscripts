@@ -1,0 +1,9 @@
+# prettier ignores files setup in .gitignore
+
+docs
+
+# Lock Files
+bun.lockb
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

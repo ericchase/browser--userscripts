@@ -20,9 +20,23 @@ const config = {
   dismissIfWatched: true,
 };
 
-const text_to_remove = ['Acoustic', 'Beats', 'China', 'Covers', 'Crypto', 'Hits', 'K.A.R.D', 'KARD', 'Minecraft', 'Mix', 'Music', 'Prank', 'Songs', 'TikTok', 'years ago'].map((text) =>
-  text.toLowerCase()
-);
+const text_to_remove = [
+  'Acoustic',
+  'Beats',
+  'China',
+  'Covers',
+  'Crypto',
+  'Hits',
+  'K.A.R.D',
+  'KARD',
+  'Minecraft',
+  'Mix',
+  'Music',
+  'Prank',
+  'Songs',
+  'TikTok',
+  'years ago',
+].map((text) => text.toLowerCase());
 
 function shouldBeRemoved(video) {
   const selectors = {

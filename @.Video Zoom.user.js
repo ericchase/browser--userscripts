@@ -156,23 +156,23 @@ function Setup(video) {
       () => {
         window.removeEventListener('mousedown', ClickBegin);
         window.removeEventListener('mousedown', ClickBegin, true);
-      }
+      },
     ),
     ClickEnd: Toggler(
       () => window.addEventListener('mouseup', ClickEnd, true),
-      () => window.removeEventListener('mouseup', ClickEnd, true)
+      () => window.removeEventListener('mouseup', ClickEnd, true),
     ),
     ClickMove: Toggler(
       () => window.addEventListener('mousemove', ClickMove, true),
-      () => window.removeEventListener('mousemove', ClickMove, true)
+      () => window.removeEventListener('mousemove', ClickMove, true),
     ),
     ResetZoom: Toggler(
       () => window.addEventListener('contextmenu', ResetZoom, true),
-      () => window.removeEventListener('contextmenu', ResetZoom, true)
+      () => window.removeEventListener('contextmenu', ResetZoom, true),
     ),
     StopClickWhenZoomed: Toggler(
       () => window.addEventListener('click', StopClickWhenZoomed, true),
-      () => window.removeEventListener('click', StopClickWhenZoomed, true)
+      () => window.removeEventListener('click', StopClickWhenZoomed, true),
     ),
   };
 
