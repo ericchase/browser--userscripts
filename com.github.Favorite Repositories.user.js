@@ -10,183 +10,236 @@
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
-async function main() {
+const getOrderedListTask = dbv1_getOrdered();
+/** @type {Map<string,string>} */
+const avatarCache = new Map();
+/** @type {Set<HTMLElement>} */
+const processedSet = new Set();
+
+const mainQuery = 'div[class="js-repos-container"]';
+const alternateQuery = '#repository-details-container>ul';
+
+(function () {
   if (window.location.href === 'https://github.com/') {
-    // start as background task
-    const task_getOrdered = dbv1_getOrdered();
-
-    // <div class="dashboard-sidebar">
-    const el_Sidebar = await PollForElement(document, '.dashboard-sidebar', 100);
-    // <div class="Details js-repos-container " data-repository-hovercards-enabled="" role="navigation" aria-label="Repositories">
-    const el_Repositories = await PollForElement(el_Sidebar, '[aria-label="Repositories"]', 100);
-    // <div class="js-repos-container">
-    const el_JSReposContainer = await PollForElement(el_Repositories, '.js-repos-container', 100);
-
-    const el_Top_Title = el_JSReposContainer.children[0];
-    const el_Top_Search = el_JSReposContainer.children[1];
-    const el_Top_Repos = el_JSReposContainer.children[2];
-    const el_Top_ShowMore = el_JSReposContainer.children[3];
-
-    // Title
-    const el_Favorites_Title = el_Top_Title.cloneNode();
-    {
-      const h2 = el_Top_Title.children[0].cloneNode();
-      h2.textContent = 'Favorite Repositories';
-      el_Favorites_Title.appendChild(h2);
-    }
-    el_JSReposContainer.insertBefore(el_Favorites_Title, el_Top_Title);
-
-    // Repo List
-    const el_Favorites_Repos = el_Top_Repos.cloneNode();
-    for (const { url } of await task_getOrdered) {
-      const item = await CloneRepoListItem(el_Top_Repos, url);
-      el_Favorites_Repos.appendChild(item);
-    }
-    el_JSReposContainer.insertBefore(el_Favorites_Repos, el_Top_Title);
-
-    // Margin
-    const el_Favorites_Margin = document.createElement('div');
-    el_Favorites_Margin.classList.add('mt-3');
-    el_JSReposContainer.insertBefore(el_Favorites_Margin, el_Top_Title);
-
-    // Remove Top Repositories
-    el_Top_Title.remove();
-    el_Top_Search.remove();
-    el_Top_Repos.remove();
-    el_Top_ShowMore.remove();
-  } else {
-    const repoUrl = window.location.href;
-    // <div id="repository-details-container" data-turbo-replace="">
-    //   <ul class="pagehead-actions flex-shrink-0 d-none d-md-inline" style="padding: 2px 0;">
-    const el_Buttons = await PollForElement(document, '#repository-details-container>ul', 100);
-    {
-      // <li>
-      //   <button class="btn-sm btn">Favorite</button>
-      // </li>
-      const li = document.createElement('li');
-      const button = document.createElement('button');
-      button.classList.add('btn-sm');
-      button.classList.add('btn');
-      if (await dbv1_get(repoUrl)) {
-        button.textContent = 'Unfavorite';
-      } else {
-        button.textContent = 'Favorite';
+    for (const element of document.documentElement.querySelectorAll(mainQuery) ?? []) {
+      if (element instanceof HTMLElement) {
+        setupFavoritesList(element);
       }
-      button.addEventListener('click', async () => {
-        try {
-          if (await dbv1_get(repoUrl)) {
-            if (await dbv1_delete(repoUrl)) {
-              button.textContent = 'Favorite';
-            }
-          } else {
-            if (await dbv1_add(repoUrl)) {
-              button.textContent = 'Unfavorite';
-            }
-          }
-        } catch (error) {}
-      });
-      li.append(button);
-      el_Buttons.append(li);
     }
+    observeDocument(mainCallback);
+  } else {
+    for (const element of document.documentElement.querySelectorAll(alternateQuery) ?? []) {
+      if (element instanceof HTMLElement) {
+        addFavoriteButton(element);
+        return;
+      }
+    }
+    observeDocument(alternateCallback);
   }
-}
-main();
+})();
 
 /**
- * @param {Element} elList
- * @param {string} repoUrl
+ * @param {MutationRecord[]} mutationRecords
+ * @param {MutationObserver} mutationObserver
  */
-async function CloneRepoListItem(elList, repoUrl) {
-  const el_ChildClone = elList.children[0].cloneNode(true);
-  if (el_ChildClone instanceof Element) {
-    el_ChildClone.classList.remove('public');
-    el_ChildClone.classList.remove('private');
-
-    const aTags = el_ChildClone.querySelectorAll('a');
-    // remove attributes
-    for (const aTag of aTags) {
-      for (const name of aTag.getAttributeNames()) {
-        if (name !== 'class') {
-          aTag.removeAttribute(name);
+function mainCallback(mutationRecords, mutationObserver) {
+  for (const record of mutationRecords) {
+    for (const node of record.addedNodes) {
+      if (node instanceof HTMLElement) {
+        if (node.matches(mainQuery)) {
+          setupFavoritesList(node);
+        }
+        for (const element of node.querySelectorAll(mainQuery) ?? []) {
+          if (element instanceof HTMLElement) {
+            setupFavoritesList(element);
+          }
         }
       }
     }
+  }
+}
 
-    const urlParts = repoUrl.split('/');
-    const userName = urlParts.at(-2) ?? '';
-    const repoName = urlParts.at(-1) ?? '';
-
-    // User Image
-    aTags[0].href = repoUrl;
-    const image = aTags[0].querySelectorAll('img')[0];
-    setUserAvatar(userName, image);
-    image.alt = '';
-
-    // Repo URL
-    aTags[1].href = repoUrl;
-    // User Name
-    aTags[1].childNodes[0].textContent = userName;
-    // Slash
-    aTags[1].childNodes[1];
-    // Repo Name
-    aTags[1].childNodes[2].textContent = repoName;
-
-    if (el_ChildClone.firstElementChild) {
-      {
-        // Raise
-        const el = document.createElement('a');
-        el.href = '#';
-        el.classList.add('ml-1');
-        el.textContent = '↑';
-        el.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          dbv1_raise(repoUrl);
-          if (el_ChildClone.parentElement && el_ChildClone.previousElementSibling) {
-            el_ChildClone.parentElement.insertBefore(el_ChildClone, el_ChildClone.previousElementSibling);
+/**
+ * @param {MutationRecord[]} mutationRecords
+ * @param {MutationObserver} mutationObserver
+ */
+function alternateCallback(mutationRecords, mutationObserver) {
+  for (const record of mutationRecords) {
+    for (const node of record.addedNodes) {
+      if (node instanceof HTMLElement) {
+        if (node.matches(alternateQuery)) {
+          addFavoriteButton(node);
+          return;
+        }
+        for (const element of node.querySelectorAll(alternateQuery) ?? []) {
+          if (element instanceof HTMLElement) {
+            addFavoriteButton(element);
+            return;
           }
-        });
-        el_ChildClone.firstElementChild.appendChild(el);
-      }
-      {
-        // Lower
-        const el = document.createElement('a');
-        el.href = '#';
-        el.classList.add('ml-1');
-        el.textContent = '↓';
-        el.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          dbv1_lower(repoUrl);
-          if (el_ChildClone.parentElement && el_ChildClone.nextElementSibling) {
-            el_ChildClone.parentElement.insertBefore(el_ChildClone.nextElementSibling, el_ChildClone);
-          }
-        });
-        el_ChildClone.firstElementChild.appendChild(el);
-      }
-      {
-        // Delete
-        const el = document.createElement('a');
-        el.href = '#';
-        el.classList.add('ml-1');
-        el.textContent = '⨯';
-        el.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          dbv1_delete(repoUrl);
-          el_ChildClone.remove();
-        });
-        el_ChildClone.firstElementChild.appendChild(el);
+        }
       }
     }
   }
-  return el_ChildClone;
 }
 
-/** @type {Map<string,string>} */
-const avatarCache = new Map();
+/**
+ * @param {HTMLElement} buttonList
+ */
+async function addFavoriteButton(buttonList) {
+  if (processedSet.has(buttonList) === false) {
+    processedSet.add(buttonList);
+
+    const li = createElement('li');
+    buttonList.append(li);
+    const button = createElement('button', { classList: ['btn-sm', 'btn'] });
+    li.append(button);
+
+    const repoUrl = window.location.href;
+
+    if (await dbv1_get(repoUrl)) {
+      button.textContent = 'Unfavorite';
+    } else {
+      button.textContent = 'Favorite';
+    }
+    button.addEventListener('click', async () => {
+      try {
+        if (await dbv1_get(repoUrl)) {
+          if (await dbv1_delete(repoUrl)) {
+            button.textContent = 'Favorite';
+          }
+        } else {
+          if (await dbv1_add(repoUrl)) {
+            button.textContent = 'Unfavorite';
+          }
+        }
+      } catch (error) {}
+    });
+  }
+}
+
+/**
+ * @param {HTMLElement} repositoryList
+ */
+async function setupFavoritesList(repositoryList) {
+  if (processedSet.has(repositoryList) === false) {
+    processedSet.add(repositoryList);
+    const newSection = createFavoritesSection();
+    repositoryList.parentElement?.insertBefore(newSection._element, repositoryList);
+    // originalList.toggleAttribute('hidden', true);
+    populateFavoritesList(newSection.list);
+  }
+}
+
+/**
+ * @param {HTMLUListElement} list
+ */
+async function populateFavoritesList(list) {
+  for (const { url } of await getOrderedListTask) {
+    const urlParts = url.split('/');
+    const userName = urlParts.at(-2) ?? '';
+    const repoName = urlParts.at(-1) ?? '';
+    const item = createRepositoryListItem(userName, repoName);
+    list.appendChild(item);
+    addDatabaseOperations(item, url);
+  }
+}
+
+/**
+ * @param {HTMLLIElement} item
+ * @param {string} url
+ */
+async function addDatabaseOperations(item, url) {
+  if (item.firstElementChild) {
+    {
+      // Raise
+      const A = document.createElement('a');
+      A.href = '#';
+      A.classList.add('ml-1');
+      A.textContent = '↑';
+      A.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        dbv1_raise(url);
+        if (item.parentElement && item.previousElementSibling) {
+          item.parentElement.insertBefore(item, item.previousElementSibling);
+        }
+      });
+      item.firstElementChild.appendChild(A);
+    }
+    {
+      // Lower
+      const A = document.createElement('a');
+      A.href = '#';
+      A.classList.add('ml-1');
+      A.textContent = '↓';
+      A.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        dbv1_lower(url);
+        if (item.parentElement && item.nextElementSibling) {
+          item.parentElement.insertBefore(item.nextElementSibling, item);
+        }
+      });
+      item.firstElementChild.appendChild(A);
+    }
+    {
+      // Delete
+      const A = document.createElement('a');
+      A.href = '#';
+      A.classList.add('ml-1');
+      A.textContent = '⨯';
+      A.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        dbv1_delete(url);
+        item.remove();
+      });
+      item.firstElementChild.appendChild(A);
+    }
+  }
+}
+
+function createFavoritesSection() {
+  const _element = createElement('div', { classList: ['js-repos-container'] });
+  const title = createElement('h2', { classList: ['f5'], textContent: 'Favorite Repositories' });
+  const list = createElement('ul', { classList: ['list-style-none'] });
+  const margin = createElement('div', { classList: ['mt-3'] });
+  _element.appendChild(title);
+  _element.appendChild(list);
+  _element.appendChild(margin);
+  return { _element, title, list, margin };
+}
+
 /**
  * @param {string} userName
- * @param {HTMLImageElement} image
+ * @param {string} repoName
  */
-async function setUserAvatar(userName, image) {
+function createRepositoryListItem(userName, repoName) {
+  const listItem = createElement('li', { classList: ['source'] });
+  const pictureDiv = createElement('div', { classList: ['width-full', 'd-flex', 'mt-2'] });
+  listItem.appendChild(pictureDiv);
+  const pictureA = createElement('a', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
+  pictureDiv.appendChild(pictureA);
+  pictureA.href = `/${userName}/${repoName}`;
+  const pictureImg = createElement('img', { classList: ['avatar', 'avatar-user', 'avatar-small', 'circle'] });
+  pictureA.appendChild(pictureImg);
+  pictureImg.setAttribute('width', '16');
+  pictureImg.setAttribute('height', '16');
+  pictureImg.setAttribute('alt', repoName);
+  getUserAvatar(userName, pictureImg);
+  const nameDiv = createElement('div', { classList: ['wb-break-word'] });
+  pictureDiv.appendChild(nameDiv);
+  const nameA = createElement('a', { classList: ['color-fg-default', 'lh-0', 'mb-2', 'markdown-title'] });
+  nameDiv.appendChild(nameA);
+  nameA.href = `/${userName}/${repoName}`;
+  nameA.append(document.createTextNode(userName));
+  nameA.appendChild(createElement('span', { classList: ['color-fg-muted'], textContent: '/' }));
+  nameA.append(document.createTextNode(repoName));
+  return listItem;
+}
+
+/**
+ * @param {string} userName
+ * @param {HTMLImageElement} img
+ */
+async function getUserAvatar(userName, img) {
   if (!avatarCache.has(userName)) {
     const userUrl = 'https://github.com/' + userName;
     const response = await fetch(userUrl);
@@ -196,39 +249,55 @@ async function setUserAvatar(userName, image) {
     const avatarUrl = html.substring(start, end) + '?s=16&v=4';
     avatarCache.set(userName, avatarUrl);
   }
-  image.src = avatarCache.get(userName) ?? '';
+  img.src = avatarCache.get(userName) ?? '';
+}
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/**
+ * @param {MutationCallback} callback
+ */
+function observeDocument(callback) {
+  const mutationObserver = new MutationObserver(callback);
+  mutationObserver.observe(document.documentElement, { subtree: true, childList: true });
 }
 
 /**
- * @param {Document|Element} root
- * @param {string} query
- * @param {number} ms
- * @param {number} timeout
- * @return {Promise<HTMLElement>}
+ * @template {keyof HTMLElementTagNameMap} K
+ * @param {K} tag
+ * @param {object} options
+ * @param {string[]=} options.classList
+ * @param {string=} options.textContent
  */
-function PollForElement(root, query, ms, timeout = 10000) {
-  return new Promise((resolve, reject) => {
-    let abort = false;
-    const abortid = setTimeout(() => {
-      console.log('poll timeout:', query);
-      abort = true;
-    }, timeout);
-    (function search() {
-      for (const el of root.querySelectorAll(query)) {
-        if (el instanceof HTMLElement /*&& el.style.display !== 'none'*/) {
-          clearTimeout(abortid);
-          return resolve(el);
-        }
-      }
-      if (abort === false) {
-        setTimeout(search, ms);
-      } else {
-        return reject();
-      }
-    })();
-  });
+function createElement(tag, options = {}) {
+  const el = document.createElement(tag);
+  el.classList.add('INJECTED');
+  if (options.classList) {
+    el.classList.add(...options.classList);
+  }
+  if (options.textContent) {
+    el.textContent = options.textContent;
+  }
+  return el;
 }
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // INDEXEDDB
 // https://github.com/alexeagleson/template-indexeddb
 
