@@ -3,7 +3,7 @@
 // @author      ericchase
 // @namespace   ericchase
 // @match       https://github.com/*
-// @version     1.1.0
+// @version     1.1.1
 // @description 3/12/2024, 2:56:09 AM
 // @run-at      document-start
 // @grant       none
@@ -15,6 +15,11 @@ const getOrderedListTask = dbv1_getOrdered();
 const avatarCache = new Map();
 /** @type {Set<HTMLElement>} */
 const processedSet = new Set();
+
+/** @type {HTMLElement[]} */
+const undoElements = [];
+/** @type {(()=>void)[]} */
+const undoList = [];
 
 const mainQuery = 'div[class="js-repos-container"]';
 const alternateQuery = '#repository-details-container>ul';
@@ -140,71 +145,148 @@ async function populateFavoritesList(list) {
     const repoName = urlParts.at(-1) ?? '';
     const item = createRepositoryListItem(userName, repoName);
     list.appendChild(item);
-    addDatabaseOperations(item, url);
+    addDatabaseOperations(list, item, url);
+    // makeDraggable(item);
   }
 }
 
 /**
+ * @param {HTMLUListElement} list
  * @param {HTMLLIElement} item
  * @param {string} url
  */
-async function addDatabaseOperations(item, url) {
+async function addDatabaseOperations(list, item, url) {
+  function _raise() {
+    dbv1_raise(url);
+    if (item.parentElement && item.previousElementSibling) {
+      item.parentElement.insertBefore(item, item.previousElementSibling);
+    }
+  }
+  function _lower() {
+    dbv1_lower(url);
+    if (item.parentElement && item.nextElementSibling) {
+      item.parentElement.insertBefore(item.nextElementSibling, item);
+    }
+  }
+
   if (item.firstElementChild) {
-    {
-      // Raise
-      const A = document.createElement('a');
-      A.href = '#';
-      A.classList.add('ml-1');
-      A.textContent = '↑';
-      A.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        dbv1_raise(url);
-        if (item.parentElement && item.previousElementSibling) {
-          item.parentElement.insertBefore(item, item.previousElementSibling);
-        }
+    // Raise
+    const raiseA = createElement('a', { textContent: '↑' });
+    raiseA.href = '#';
+    raiseA.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      addUndoHistory(_lower);
+      _raise();
+    });
+
+    // Lower
+    const lowerA = createElement('a', { textContent: '↓' });
+    lowerA.href = '#';
+    lowerA.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      addUndoHistory(_raise);
+      _lower();
+    });
+
+    const div = createElement('div', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
+    div.append(raiseA, lowerA);
+    item.firstElementChild.prepend(div);
+
+    // Delete
+    const deleteA = createElement('a', { classList: ['ml-1'], textContent: '⨯' });
+    deleteA.href = '#';
+    deleteA.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      const { order } = await dbv1_get(url);
+      const nextElement = item.nextElementSibling;
+      addUndoHistory(() => {
+        dbv1_put(url, order);
+        list.insertBefore(item, nextElement);
       });
-      item.firstElementChild.appendChild(A);
-    }
-    {
-      // Lower
-      const A = document.createElement('a');
-      A.href = '#';
-      A.classList.add('ml-1');
-      A.textContent = '↓';
-      A.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        dbv1_lower(url);
-        if (item.parentElement && item.nextElementSibling) {
-          item.parentElement.insertBefore(item.nextElementSibling, item);
-        }
-      });
-      item.firstElementChild.appendChild(A);
-    }
-    {
-      // Delete
-      const A = document.createElement('a');
-      A.href = '#';
-      A.classList.add('ml-1');
-      A.textContent = '⨯';
-      A.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        dbv1_delete(url);
-        item.remove();
-      });
-      item.firstElementChild.appendChild(A);
-    }
+      dbv1_delete(url);
+      item.remove();
+    });
+
+    item.firstElementChild.appendChild(deleteA);
   }
 }
 
+// /**
+//  * @param {HTMLLIElement} item
+//  */
+// function makeDraggable(item) {
+//   if (item.firstElementChild) {
+//     const div = createElement('div', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
+//     const svg = new DOMParser().parseFromString(
+//       `<svg viewBox="0 0 25 45" height="1em" xmlns="http://www.w3.org/2000/svg">
+//       <circle cx="5"  cy="10" r="3"></circle>
+//       <circle cx="5"  cy="25" r="3"></circle>
+//       <circle cx="5"  cy="40" r="3"></circle>
+//       <circle cx="20" cy="10" r="3"></circle>
+//       <circle cx="20" cy="25" r="3"></circle>
+//       <circle cx="20" cy="40" r="3"></circle>
+//     </svg>`,
+//       'text/html',
+//     ).firstElementChild;
+//     if (svg) {
+//       div.append(svg);
+//     }
+//     item.firstElementChild.prepend(div);
+//     div.setAttribute('draggable', 'true');
+//     div.addEventListener('dragstart', (ev) => {
+//       if (ev.dataTransfer) {
+//         ev.dataTransfer.effectAllowed = 'move';
+//       }
+//     });
+//   }
+// }
+
 function createFavoritesSection() {
   const _element = createElement('div', { classList: ['js-repos-container'] });
+
+  const div = createElement('div', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
   const title = createElement('h2', { classList: ['f5'], textContent: 'Favorite Repositories' });
+  const undo = createElement('a', { classList: ['ml-2'], textContent: 'undo' });
+  undo.toggleAttribute('hidden', true);
+  undo.href = '#';
+  undo.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    undoOnce();
+  });
+  div.append(title, undo);
+  undoElements.push(undo);
+
   const list = createElement('ul', { classList: ['list-style-none'] });
   const margin = createElement('div', { classList: ['mt-3'] });
-  _element.appendChild(title);
+  _element.appendChild(div);
   _element.appendChild(list);
   _element.appendChild(margin);
   return { _element, title, list, margin };
+}
+
+/**
+ * @param {()=>void} callback
+ */
+function addUndoHistory(callback) {
+  undoList.push(callback);
+  if (undoList.length > 0) {
+    for (const undo of undoElements) {
+      undo.toggleAttribute('hidden', false);
+    }
+  }
+}
+function undoOnce() {
+  if (undoList.length > 0) {
+    const callback = undoList.pop();
+    if (callback) {
+      callback();
+    }
+  }
+  if (undoList.length === 0) {
+    for (const undo of undoElements) {
+      undo.toggleAttribute('hidden', true);
+    }
+  }
 }
 
 /**
@@ -213,10 +295,10 @@ function createFavoritesSection() {
  */
 function createRepositoryListItem(userName, repoName) {
   const listItem = createElement('li', { classList: ['source'] });
-  const pictureDiv = createElement('div', { classList: ['width-full', 'd-flex', 'mt-2'] });
-  listItem.appendChild(pictureDiv);
+  const containerDiv = createElement('div', { classList: ['width-full', 'd-flex', 'mt-2'] });
+  listItem.appendChild(containerDiv);
   const pictureA = createElement('a', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
-  pictureDiv.appendChild(pictureA);
+  containerDiv.appendChild(pictureA);
   pictureA.href = `/${userName}/${repoName}`;
   const pictureImg = createElement('img', { classList: ['avatar', 'avatar-user', 'avatar-small', 'circle'] });
   pictureA.appendChild(pictureImg);
@@ -225,7 +307,7 @@ function createRepositoryListItem(userName, repoName) {
   pictureImg.setAttribute('alt', repoName);
   getUserAvatar(userName, pictureImg);
   const nameDiv = createElement('div', { classList: ['wb-break-word'] });
-  pictureDiv.appendChild(nameDiv);
+  containerDiv.appendChild(nameDiv);
   const nameA = createElement('a', { classList: ['color-fg-default', 'lh-0', 'mb-2', 'markdown-title'] });
   nameDiv.appendChild(nameA);
   nameA.href = `/${userName}/${repoName}`;
