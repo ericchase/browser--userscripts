@@ -3,7 +3,7 @@
 // @author      ericchase
 // @namespace   ericchase
 // @match       https://github.com/*
-// @version     1.1.1
+// @version     1.1.2
 // @description 3/12/2024, 2:56:09 AM
 // @run-at      document-start
 // @grant       none
