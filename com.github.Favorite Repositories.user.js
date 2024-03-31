@@ -25,7 +25,7 @@ const mainQuery = 'div[class="js-repos-container"]';
 const alternateQuery = '#repository-details-container>ul';
 
 (function () {
-  if (window.location.href === 'https://github.com/') {
+  if (window.location.href === 'https://github.com/' || window.location.href.startsWith('https://github.com/#')) {
     for (const element of document.documentElement.querySelectorAll(mainQuery) ?? []) {
       if (element instanceof HTMLElement) {
         setupFavoritesList(element);
