@@ -3,7 +3,7 @@
 // @author      ericchase
 // @namespace   ericchase
 // @match       https://github.com/*
-// @version     1.1.2
+// @version     1.1.3
 // @description 3/12/2024, 2:56:09 AM
 // @run-at      document-start
 // @grant       none
@@ -140,9 +140,8 @@ async function setupFavoritesList(repositoryList) {
  */
 async function populateFavoritesList(list) {
   for (const { url } of await getOrderedListTask) {
-    const urlParts = url.split('/');
-    const userName = urlParts.at(-2) ?? '';
-    const repoName = urlParts.at(-1) ?? '';
+    const [_, userName, ...repoParts] = new URL(url).pathname.split('/');
+    const repoName = repoParts.join('/');
     const item = createRepositoryListItem(userName, repoName);
     list.appendChild(item);
     addDatabaseOperations(list, item, url);
