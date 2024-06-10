@@ -17,7 +17,6 @@ for (const entry of await node_fs.readdir('./src', { recursive: true, withFileTy
         lines[index] = line.slice(line.indexOf('*/ ') + '*/ '.length).replace('#FILE', resource_text);
       }
     }
-    // await WriteFile(`${entry.parentPath}\\${entry.name.slice('gen.'.length, entry.name.indexOf('.mjs'))}`, lines.join('\n'));
-    console.log(`${entry.parentPath}\\${entry.name.slice('gen.'.length, entry.name.indexOf('.mjs'))}.ts`);
+    await WriteFile(`${entry.parentPath}\\${entry.name.slice('gen.'.length, entry.name.indexOf('.mjs'))}.ts`, lines.join('\n'));
   }
 }

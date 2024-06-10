@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export class SetEx extends Set {
-    constructor() {
-        super();
+  constructor() {
+    super();
+  }
+  addWithCB(value, callback) {
+    if (this.has(value) === false) {
+      this.add(value);
+      callback?.(value);
     }
-    addWithCB(value, callback) {
-        if (this.has(value) === false) {
-            this.add(value);
-            callback?.(value);
-        }
+  }
+  deleteWithCB(value, callback) {
+    if (this.has(value) === true) {
+      this.delete(value);
+      callback?.(value);
     }
-    deleteWithCB(value, callback) {
-        if (this.has(value) === true) {
-            this.delete(value);
-            callback?.(value);
-        }
-    }
+  }
 }

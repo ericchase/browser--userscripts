@@ -12,42 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export class ElementAddedObserver {
-    mutationObserver;
-    constructor({ callback = () => undefined, //
-    query = '', root = document.documentElement, }) {
-        this.mutationObserver = new MutationObserver((mutationRecords) => {
-            for (const record of mutationRecords) {
-                for (const node of record.addedNodes) {
-                    if (node instanceof HTMLElement) {
-                        if (node.matches(query)) {
-                            if (callback(node)?.disconnect === true) {
-                                return this.mutationObserver.disconnect();
-                            }
-                        }
-                        for (const element of node.querySelectorAll(query) ?? []) {
-                            if (element instanceof HTMLElement) {
-                                if (callback(element)?.disconnect === true) {
-                                    return this.mutationObserver.disconnect();
-                                }
-                            }
-                        }
-                    }
-                }
+  mutationObserver;
+  constructor({
+    callback = () => undefined, //
+    query = '',
+    root = document.documentElement,
+  }) {
+    this.mutationObserver = new MutationObserver((mutationRecords) => {
+      for (const record of mutationRecords) {
+        for (const node of record.addedNodes) {
+          if (node instanceof HTMLElement) {
+            if (node.matches(query)) {
+              if (callback(node)?.disconnect === true) {
+                return this.mutationObserver.disconnect();
+              }
             }
-        });
-        this.mutationObserver.observe(root, {
-            subtree: true,
-            childList: true,
-        });
-        for (const element of root.querySelectorAll(query) ?? []) {
-            if (element instanceof HTMLElement) {
+            for (const element of node.querySelectorAll(query) ?? []) {
+              if (element instanceof HTMLElement) {
                 if (callback(element)?.disconnect === true) {
-                    this.mutationObserver.disconnect();
+                  return this.mutationObserver.disconnect();
                 }
+              }
             }
+          }
         }
+      }
+    });
+    this.mutationObserver.observe(root, {
+      subtree: true,
+      childList: true,
+    });
+    for (const element of root.querySelectorAll(query) ?? []) {
+      if (element instanceof HTMLElement) {
+        if (callback(element)?.disconnect === true) {
+          this.mutationObserver.disconnect();
+        }
+      }
     }
-    disconnect() {
-        this.mutationObserver.disconnect();
-    }
+  }
+  disconnect() {
+    this.mutationObserver.disconnect();
+  }
 }

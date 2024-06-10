@@ -1,6 +1,5 @@
 import { $, cloneNode } from '../lib/lib.js';
-const css = `
-.heart-icon {
+const css = `.heart-icon {
   cursor: pointer;
   user-select: none;
   width: calc(16em / 14);
@@ -17,8 +16,7 @@ const css = `
   }
 }
 `;
-const html = `
-<!--
+const html = `<!--
 Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part 
 of Feather (MIT). All other copyright (c) for Lucide are held by Lucide 
 Contributors 2022.
@@ -41,17 +39,15 @@ Contributors 2022.
 </svg>
 `;
 export const createHeartIcon = (function () {
-    const htmlHeartIcon = (async function () {
-        // const response = await fetch('/assets/heart.svg');
-        // const html = await response.text();
-        const sheet = new CSSStyleSheet();
-        sheet.replaceSync(css);
-        document.adoptedStyleSheets.push(sheet);
-        return $('svg', 'svg', new DOMParser().parseFromString(html, 'text/html'));
-    })();
-    return async function () {
-        const icon = cloneNode(await htmlHeartIcon, true);
-        icon.classList.add('heart-icon');
-        return icon;
-    };
+  const htmlHeartIcon = (async function () {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(css);
+    document.adoptedStyleSheets.push(sheet);
+    return $('svg', 'svg', new DOMParser().parseFromString(html, 'text/html'));
+  })();
+  return async function () {
+    const icon = cloneNode(await htmlHeartIcon, true);
+    icon.classList.add('heart-icon');
+    return icon;
+  };
 })();

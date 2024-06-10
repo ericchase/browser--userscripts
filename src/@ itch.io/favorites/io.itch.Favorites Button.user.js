@@ -298,8 +298,7 @@ function $(tagName, selector, root = document.documentElement) {
 function cloneNode(element, deep = false) {
   return element.cloneNode(deep);
 }
-const css = `
-.heart-icon {
+const css = `.heart-icon {
   cursor: pointer;
   user-select: none;
   width: calc(16em / 14);
@@ -316,8 +315,7 @@ const css = `
   }
 }
 `;
-const html = `
-<!--
+const html = `<!--
 Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part 
 of Feather (MIT). All other copyright (c) for Lucide are held by Lucide 
 Contributors 2022.
