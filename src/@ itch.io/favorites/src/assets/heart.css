@@ -1,0 +1,16 @@
+.heart-icon {
+  cursor: pointer;
+  user-select: none;
+  width: calc(16em / 14);
+  height: calc(16em / 14);
+  margin-inline-end: 0.125em;
+  vertical-align: bottom;
+  stroke: none;
+  fill: lightgray;
+  &:hover {
+    fill: gray;
+  }
+  &.on {
+    fill: red;
+  }
+}

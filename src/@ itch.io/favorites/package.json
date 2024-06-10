@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "build": "bun ./dev-scripts/build.mjs",
+    "watch-build": "bun ./dev-scripts/watch-build.mjs",
+    "templates-generate": "bun ./dev-scripts/templates-generate.mjs",
+    "dev": "tsc --preserveWatchOutput --watch",
+    "format-debug": "prettier . --debug-check",
+    "format": "prettier . --write",
+    "tsc": "tsc",
+    "vite": "vite"
+  },
+  "dependencies": {
+    "prettier": "^3.3.1",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.13"
+  }
+}
