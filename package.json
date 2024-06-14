@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "generate-links": "bun ./automation-scripts/generate-links.mts",
+    "build": "bun ./automation-scripts/generate-links.mts",
     "format-debug": "prettier . --debug-check",
     "format": "prettier . --write"
   },

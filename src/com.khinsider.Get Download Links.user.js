@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        get download links - khinsider.com
+// @name        com.khinsider: Get Download Links
 // @author      ericchase
 // @namespace   ericchase
-// @match       https://downloads.khinsider.com/game-soundtracks/album/*
+// @match       *://downloads.khinsider.com/game-soundtracks/album/*
 // @version     1.0.0
 // @description 12/20/2023, 9:22:10 AM
 // @run-at      document-start
