@@ -1,5 +1,6 @@
 # prettier ignores files setup in .gitignore
 
+coverage
 docs
 
 # Lock Files
