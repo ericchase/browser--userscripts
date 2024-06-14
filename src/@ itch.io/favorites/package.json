@@ -1,17 +1,17 @@
 {
   "scripts": {
-    "build": "bun ./dev-scripts/build.mjs",
-    "watch-build": "bun ./dev-scripts/watch-build.mjs",
-    "templates-generate": "bun ./dev-scripts/templates-generate.mjs",
-    "dev": "tsc --preserveWatchOutput --watch",
-    "format-debug": "prettier . --debug-check",
-    "format": "prettier . --write",
+    "build": "bun ./automation-scripts/build.mts",
+    "dev": "bun ./automation-scripts/dev.mts",
+    "generate-templates": "bun ./automation-scripts/generate-templates.mts",
+    "watch-build": "bun ./automation-scripts/watch-build.mts",
     "tsc": "tsc",
-    "vite": "vite"
+    "vite": "vite",
+    "format-debug": "prettier . --debug-check",
+    "format": "prettier . --write"
   },
   "dependencies": {
-    "prettier": "^3.3.1",
+    "prettier": "^3.3.2",
     "typescript": "^5.4.5",
-    "vite": "^5.2.13"
+    "vite": "^5.3.0"
   }
 }

@@ -2,8 +2,8 @@ import { ReadFile, WriteFile } from './lib/Node/Fs.mts';
 import { Run } from './lib/Node/Process.mts';
 import { GetSemanticVersion } from './lib/Web/Browser/Addon.mts';
 
-await Run('bun', ['run', 'format']);
-await Run('bun', ['run', 'vite', 'build']);
+await Run({ program: 'bun', args: ['run', 'format'] });
+await Run({ program: 'bun', args: ['run', 'vite', 'build'] });
 
 // await incrementVersionPatch();
 const version = await GetSemanticVersion();

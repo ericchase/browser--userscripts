@@ -4,7 +4,7 @@ import { PipeStdio, Run } from './lib/Node/Process.mts';
 
 try {
   const run_build = Debounce(async () => {
-    PipeStdio(await Run('bun', ['run', 'build']));
+    await PipeStdio(Run({ program: 'bun', args: ['run', 'build'] }));
   }, 250);
 
   await Watch({

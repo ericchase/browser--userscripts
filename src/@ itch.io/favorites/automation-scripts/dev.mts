@@ -3,12 +3,12 @@ import { Watch } from './lib/Cxx/Watch.mts';
 import { Run } from './lib/Node/Process.mts';
 
 // tsc watch
-Run('bun', 'run tsc --preserveWatchOutput --watch'.split(' '));
+Run({ program: 'bun', args: 'run tsc --preserveWatchOutput --watch'.split(' ') });
 
 // format code
 try {
   const run_format = Debounce(async () => {
-    await Run('bun', ['run', 'format']);
+    await Run({ program: 'bun', args: ['run', 'format'] });
   }, 500);
 
   await Watch({

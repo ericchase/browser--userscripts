@@ -14,8 +14,9 @@
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
 
-    "checkJs": true,
-    "allowJs": true
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "noEmit": true
   },
-  "include": ["./dev-scripts"]
+  "exclude": ["node_modules", "*.config.ts"]
 }
