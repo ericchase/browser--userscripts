@@ -16,17 +16,17 @@
 // https://www.apache.org/licenses/LICENSE-2.0
 
 // Lucide License
-// 
+//
 // ISC License
-// 
+//
 // Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part
 // of Feather (MIT). All other copyright (c) for Lucide are held by Lucide
 // Contributors 2022.
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
 // REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
 // AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
@@ -36,11 +36,220 @@
 // USE OR PERFORMANCE OF THIS SOFTWARE.
 
 var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-const HTMLElementTagNameSet = /* @__PURE__ */ new Set(["a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "label", "legend", "li", "link", "main", "map", "mark", "menu", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "search", "section", "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"]);
-const SVGElementTagNameSet = /* @__PURE__ */ new Set(["a", "animate", "animateMotion", "animateTransform", "circle", "clipPath", "defs", "desc", "ellipse", "feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting", "feDisplacementMap", "feDistantLight", "feDropShadow", "feFlood", "feFuncA", "feFuncB", "feFuncG", "feFuncR", "feGaussianBlur", "feImage", "feMerge", "feMergeNode", "feMorphology", "feOffset", "fePointLight", "feSpecularLighting", "feSpotLight", "feTile", "feTurbulence", "filter", "foreignObject", "g", "image", "line", "linearGradient", "marker", "mask", "metadata", "mpath", "path", "pattern", "polygon", "polyline", "radialGradient", "rect", "script", "set", "stop", "style", "svg", "switch", "symbol", "text", "textPath", "title", "tspan", "use", "view"]);
-const MathMLElementTagNameSet = /* @__PURE__ */ new Set(["annotation", "annotation-xml", "maction", "math", "merror", "mfrac", "mi", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mprescripts", "mroot", "mrow", "ms", "mspace", "msqrt", "mstyle", "msub", "msubsup", "msup", "mtable", "mtd", "mtext", "mtr", "munder", "munderover", "semantics"]);
+var __defNormalProp = (obj, key, value) =>
+  key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : (obj[key] = value);
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== 'symbol' ? key + '' : key, value);
+const HTMLElementTagNameSet = /* @__PURE__ */ new Set([
+  'a',
+  'abbr',
+  'address',
+  'area',
+  'article',
+  'aside',
+  'audio',
+  'b',
+  'base',
+  'bdi',
+  'bdo',
+  'blockquote',
+  'body',
+  'br',
+  'button',
+  'canvas',
+  'caption',
+  'cite',
+  'code',
+  'col',
+  'colgroup',
+  'data',
+  'datalist',
+  'dd',
+  'del',
+  'details',
+  'dfn',
+  'dialog',
+  'div',
+  'dl',
+  'dt',
+  'em',
+  'embed',
+  'fieldset',
+  'figcaption',
+  'figure',
+  'footer',
+  'form',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'head',
+  'header',
+  'hgroup',
+  'hr',
+  'html',
+  'i',
+  'iframe',
+  'img',
+  'input',
+  'ins',
+  'kbd',
+  'label',
+  'legend',
+  'li',
+  'link',
+  'main',
+  'map',
+  'mark',
+  'menu',
+  'meta',
+  'meter',
+  'nav',
+  'noscript',
+  'object',
+  'ol',
+  'optgroup',
+  'option',
+  'output',
+  'p',
+  'picture',
+  'pre',
+  'progress',
+  'q',
+  'rp',
+  'rt',
+  'ruby',
+  's',
+  'samp',
+  'script',
+  'search',
+  'section',
+  'select',
+  'slot',
+  'small',
+  'source',
+  'span',
+  'strong',
+  'style',
+  'sub',
+  'summary',
+  'sup',
+  'table',
+  'tbody',
+  'td',
+  'template',
+  'textarea',
+  'tfoot',
+  'th',
+  'thead',
+  'time',
+  'title',
+  'tr',
+  'track',
+  'u',
+  'ul',
+  'var',
+  'video',
+  'wbr',
+]);
+const SVGElementTagNameSet = /* @__PURE__ */ new Set([
+  'a',
+  'animate',
+  'animateMotion',
+  'animateTransform',
+  'circle',
+  'clipPath',
+  'defs',
+  'desc',
+  'ellipse',
+  'feBlend',
+  'feColorMatrix',
+  'feComponentTransfer',
+  'feComposite',
+  'feConvolveMatrix',
+  'feDiffuseLighting',
+  'feDisplacementMap',
+  'feDistantLight',
+  'feDropShadow',
+  'feFlood',
+  'feFuncA',
+  'feFuncB',
+  'feFuncG',
+  'feFuncR',
+  'feGaussianBlur',
+  'feImage',
+  'feMerge',
+  'feMergeNode',
+  'feMorphology',
+  'feOffset',
+  'fePointLight',
+  'feSpecularLighting',
+  'feSpotLight',
+  'feTile',
+  'feTurbulence',
+  'filter',
+  'foreignObject',
+  'g',
+  'image',
+  'line',
+  'linearGradient',
+  'marker',
+  'mask',
+  'metadata',
+  'mpath',
+  'path',
+  'pattern',
+  'polygon',
+  'polyline',
+  'radialGradient',
+  'rect',
+  'script',
+  'set',
+  'stop',
+  'style',
+  'svg',
+  'switch',
+  'symbol',
+  'text',
+  'textPath',
+  'title',
+  'tspan',
+  'use',
+  'view',
+]);
+const MathMLElementTagNameSet = /* @__PURE__ */ new Set([
+  'annotation',
+  'annotation-xml',
+  'maction',
+  'math',
+  'merror',
+  'mfrac',
+  'mi',
+  'mmultiscripts',
+  'mn',
+  'mo',
+  'mover',
+  'mpadded',
+  'mphantom',
+  'mprescripts',
+  'mroot',
+  'mrow',
+  'ms',
+  'mspace',
+  'msqrt',
+  'mstyle',
+  'msub',
+  'msubsup',
+  'msup',
+  'mtable',
+  'mtd',
+  'mtext',
+  'mtr',
+  'munder',
+  'munderover',
+  'semantics',
+]);
 function isHTMLElementTagName(tagName) {
   return HTMLElementTagNameSet.has(tagName);
 }
@@ -58,13 +267,13 @@ function getHTMLElementReference(tagName) {
 }
 const SVGElementReferenceMap = /* @__PURE__ */ new Map();
 function getSVGElementReference(tagName) {
-  const ref = SVGElementReferenceMap.get(tagName) || document.createElementNS("http://www.w3.org/2000/svg", tagName).constructor;
+  const ref = SVGElementReferenceMap.get(tagName) || document.createElementNS('http://www.w3.org/2000/svg', tagName).constructor;
   if (!SVGElementReferenceMap.has(tagName)) SVGElementReferenceMap.set(tagName, ref);
   return ref;
 }
 const MathMLElementReferenceMap = /* @__PURE__ */ new Map();
 function getMathMLElementReference(tagName) {
-  const ref = MathMLElementReferenceMap.get(tagName) || document.createElementNS("http://www.w3.org/1998/Math/MathML", tagName).constructor;
+  const ref = MathMLElementReferenceMap.get(tagName) || document.createElementNS('http://www.w3.org/1998/Math/MathML', tagName).constructor;
   if (!MathMLElementReferenceMap.has(tagName)) MathMLElementReferenceMap.set(tagName, ref);
   return ref;
 }
@@ -76,7 +285,11 @@ class QueryError extends Error {
 }
 function $(tagName, selector, root = document.documentElement) {
   const element = root.querySelector(selector);
-  if (isHTMLElementTagName(tagName) && element instanceof getHTMLElementReference(tagName) || isSVGElementTagName(tagName) && element instanceof getSVGElementReference(tagName) || isMathMLElementTagName(tagName) && element instanceof getMathMLElementReference(tagName)) {
+  if (
+    (isHTMLElementTagName(tagName) && element instanceof getHTMLElementReference(tagName)) ||
+    (isSVGElementTagName(tagName) && element instanceof getSVGElementReference(tagName)) ||
+    (isMathMLElementTagName(tagName) && element instanceof getMathMLElementReference(tagName))
+  ) {
     return element;
   }
   throw new QueryError(`Query: \`${selector}\`. Element not of type: \`${tagName}\`.`, element);
@@ -123,27 +336,27 @@ Contributors 2022.
   />
 </svg>
 `;
-const createHeartIcon = function() {
-  const htmlHeartIcon = async function() {
+const createHeartIcon = (function () {
+  const htmlHeartIcon = (async function () {
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(css);
     document.adoptedStyleSheets.push(sheet);
-    return $("svg", "svg", new DOMParser().parseFromString(html, "text/html"));
-  }();
-  return async function() {
+    return $('svg', 'svg', new DOMParser().parseFromString(html, 'text/html'));
+  })();
+  return async function () {
     const icon = cloneNode(await htmlHeartIcon, true);
-    icon.classList.add("heart-icon");
+    icon.classList.add('heart-icon');
     return icon;
   };
-}();
+})();
 class ElementAddedObserver {
   constructor({
     callback = () => void 0,
     //
-    query = "",
-    root = document.documentElement
+    query = '',
+    root = document.documentElement,
   }) {
-    __publicField(this, "mutationObserver");
+    __publicField(this, 'mutationObserver');
     var _a;
     this.mutationObserver = new MutationObserver((mutationRecords) => {
       var _a2, _b;
@@ -168,7 +381,7 @@ class ElementAddedObserver {
     });
     this.mutationObserver.observe(root, {
       subtree: true,
-      childList: true
+      childList: true,
     });
     for (const element of root.querySelectorAll(query) ?? []) {
       if (element instanceof HTMLElement) {
@@ -201,8 +414,8 @@ class SetEx extends Set {
 }
 class SetStore {
   constructor() {
-    __publicField(this, "keySet", /* @__PURE__ */ new Set());
-    __publicField(this, "subscriptionMap", /* @__PURE__ */ new Map());
+    __publicField(this, 'keySet', /* @__PURE__ */ new Set());
+    __publicField(this, 'subscriptionMap', /* @__PURE__ */ new Map());
   }
   subscribe(key, callback) {
     const subscriptionSet = this.subscriptionMap.get(key);
@@ -261,36 +474,36 @@ class LocalStorageProvider {
 }
 class GameCellObserver {
   constructor(favoritesStore = new SetStore()) {
-    __publicField(this, "processedSet", new SetEx());
+    __publicField(this, 'processedSet', new SetEx());
     this.favoritesStore = favoritesStore;
     new ElementAddedObserver({
-      query: ".game_cell",
+      query: '.game_cell',
       callback: (element) => {
         this.processedSet.addWithCB(element, (value) => this.process(value));
-      }
+      },
     });
   }
   async process(element) {
-    const gameId = element.getAttribute("data-game_id");
+    const gameId = element.getAttribute('data-game_id');
     if (gameId !== null) {
       const elIcon = await createHeartIcon();
       this.favoritesStore.subscribe(gameId, (value) => {
-        elIcon.classList.toggle("on", value);
+        elIcon.classList.toggle('on', value);
       });
-      elIcon.addEventListener("click", () => {
+      elIcon.addEventListener('click', () => {
         this.favoritesStore.toggle(gameId);
       });
-      $("a", ".title", element).before(elIcon);
+      $('a', '.title', element).before(elIcon);
     }
   }
 }
 new GameCellObserver(
-  new class extends SetStore {
+  new (class extends SetStore {
     constructor() {
       super();
-      __publicField(this, "storageKey", "favorites");
-      __publicField(this, "storageProvider", new LocalStorageProvider());
-      for (const value of JSON.parse(this.storageProvider.get(this.storageKey) ?? "[]")) {
+      __publicField(this, 'storageKey', 'favorites');
+      __publicField(this, 'storageProvider', new LocalStorageProvider());
+      for (const value of JSON.parse(this.storageProvider.get(this.storageKey) ?? '[]')) {
         this.keySet.add(value);
       }
     }
@@ -298,5 +511,5 @@ new GameCellObserver(
       super.set(key, value);
       this.storageProvider.set(this.storageKey, JSON.stringify([...this.keySet]));
     }
-  }()
+  })(),
 );
