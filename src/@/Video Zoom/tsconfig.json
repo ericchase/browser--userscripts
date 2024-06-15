@@ -14,8 +14,17 @@
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
 
-    "allowImportingTsExtensions": true,
-    "allowJs": true,
-    "noEmit": true
+    // Out
+    "declaration": true,
+    "outDir": "compiled-js",
+    "rootDir": "./src"
+  },
+  "exclude": ["*.config.ts"],
+  "include": ["./src"],
+  "watchOptions": {
+    "watchDirectory": "useFsEvents",
+    "watchFile": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": true
   }
 }

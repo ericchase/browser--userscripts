@@ -1,22 +1,11 @@
 {
   "compilerOptions": {
-    // Enable latest features
-    "module": "ESNext",
-    "moduleDetection": "force",
     "target": "ESNext",
-
-    // Bundler mode
-    "moduleResolution": "Bundler",
     "verbatimModuleSyntax": true,
-
-    // Best practices
     "strict": true,
     "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-
-    "allowImportingTsExtensions": true,
-    "allowJs": true,
-    "noEmit": true
+    "noFallthroughCasesInSwitch": true
   },
-  "exclude": ["node_modules", "*.config.ts"]
+  "exclude": ["node_modules", "*.config.ts"],
+  "include": ["./src/*.ts", "./src/lib"]
 }

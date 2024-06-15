@@ -1,5 +1,5 @@
 {
-  "displayName": "io.itch.Favorites Button",
+  "displayName": "@.Video Zoom",
   "scripts": {
     "build": "bun ./automation-scripts/build.mts",
     "bundle": "bun ./automation-scripts/bundle.mts",

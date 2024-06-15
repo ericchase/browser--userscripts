@@ -7,7 +7,7 @@ await Run({ program: 'bun', args: ['run', 'vite', 'build'] });
 const version = await GetSemanticVersion();
 const header = (await ReadFile('./src/header.txt')).trim();
 const notice = (await ReadFile('./NOTICE')).trim();
-const third_party_notice = (await ReadFile('./LICENSE-THIRD-PARTY')).trim();
+const third_party_notice = (await ReadFile('./LICENSE-THIRD-PARTY', true)).trim();
 const script = (await ReadFile('./dist/index.mjs')).trim();
 
 const userscript = `
@@ -26,8 +26,10 @@ await WriteFile(`./${displayName}.user.js`, userscript);
 await Run({ program: 'bun', args: ['run', 'format'] });
 
 function comment(s: string) {
-  return s
-    .split('\n')
-    .map((line) => '// ' + line)
-    .join('\n');
+  return s.length === 0
+    ? ''
+    : s
+        .split('\n')
+        .map((line) => '// ' + line)
+        .join('\n');
 }

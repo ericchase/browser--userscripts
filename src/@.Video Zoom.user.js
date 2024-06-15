@@ -1,3 +1,4 @@
+"use strict";
 // ==UserScript==
 // @name        *: Video Zoom
 // @author      ericchase
@@ -9,432 +10,286 @@
 // @grant       none
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
-
 const VIDEO_QUERY = 'video';
-
-/**
- * @typedef RegionRect
- * @property {number} x
- * @property {number} y
- * @property {number} width
- * @property {number} height
- */
-
-class Region {
-  /**
-   * @param {HTMLElement} sibling
-   * @memberof Region
-   */
-  constructor(sibling) {
-    this.el = document.createElement('div');
-    this.el.style.position = 'absolute';
-    this.el.style.border = '2px solid red';
-    this.el.style.pointerEvents = 'none';
-    sibling.insertAdjacentElement('afterend', this.el);
-
-    this.startPoint = { x: 0, y: 0 };
-    this.endPoint = { x: 0, y: 0 };
-    this.hide();
-  }
-
-  /**
-   * @param {number} x
-   * @param {number} y
-   * @memberof Region
-   */
-  setStart(x, y) {
-    this.startPoint.x = x;
-    this.startPoint.y = y;
-    this.endPoint.x = x;
-    this.endPoint.y = y;
-  }
-
-  /**
-   * @param {number} x2
-   * @param {number} y2
-   * @memberof Region
-   */
-  drawRect(x2, y2) {
-    this.endPoint.x = x2;
-    this.endPoint.y = y2;
-
-    const rect = this.getRect();
-    if (rect.width > 15 && rect.height > 15) {
-      this.el.style.left = rect.x + 'px';
-      this.el.style.top = rect.y + 'px';
-      this.el.style.width = rect.width + 'px';
-      this.el.style.height = rect.height + 'px';
-      this.show();
-    } else {
-      this.el.style.left = '0';
-      this.el.style.top = '0';
-      this.el.style.width = '0';
-      this.el.style.height = '0';
-      this.hide();
-    }
-  }
-
-  /**
-   * @return {RegionRect}
-   * @memberof Region
-   */
-  getRect() {
-    let x1 = this.startPoint.x > this.endPoint.x ? this.endPoint.x : this.startPoint.x;
-    let y1 = this.startPoint.y > this.endPoint.y ? this.endPoint.y : this.startPoint.y;
-    let x2 = this.startPoint.x > this.endPoint.x ? this.startPoint.x : this.endPoint.x;
-    let y2 = this.startPoint.y > this.endPoint.y ? this.startPoint.y : this.endPoint.y;
-    return {
-      x: x1 ?? 0,
-      y: y1 ?? 0,
-      width: x2 - x1 ?? 0,
-      height: y2 - y1 ?? 0,
+function ConsumeEvent(e) {
+    Log('Consume Event');
+    e.stopPropagation();
+    e.preventDefault();
+    e.stopImmediatePropagation();
+}
+function PollForElement(query, ms) {
+    return new Promise((resolve) => {
+        (function search() {
+            for (const el of [...document.querySelectorAll(query)]) {
+                if (el instanceof HTMLElement && el.style.display !== 'none') {
+                    return resolve(el);
+                }
+            }
+            setTimeout(search, ms);
+        })();
+    });
+}
+function Toggler(onEnable, onDisable) {
+    let isEnabled = false;
+    return (enable = undefined) => {
+        if (isEnabled === enable)
+            return;
+        isEnabled = !isEnabled;
+        isEnabled ? onEnable() : onDisable();
     };
-  }
-
-  show() {
-    this.el.style.display = 'block';
-  }
-
-  hide() {
-    this.el.style.display = 'none';
-  }
 }
-
-/**
- * @param {HTMLVideoElement} video
- * @param {RegionRect} rect
- */
-function ApplyZoomToRect(video, rect) {
-  const v = { x: video.offsetLeft, y: video.offsetTop, w: video.offsetWidth, h: video.offsetHeight };
-  const r = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
-
-  // get ratios of rectangle size to video size
-  // choose the smaller scale
-  const xScale = v.w / r.w;
-  const yScale = v.h / r.h;
-  const scale = xScale < yScale ? xScale : yScale;
-
-  // calculate the new coordinates
-  let newX = r.x * scale - (v.w - r.w * scale) / 2 - v.x * scale;
-  let newY = r.y * scale - (v.h - r.h * scale) / 2 - v.y * scale;
-  if (newX < 0) newX = 0;
-  if (newY < 0) newY = 0;
-
-  video.style.transform = `translate(-${newX}px, -${newY}px) scale(${scale})`;
+function IsLeftClick(e) {
+    return e.button === 0;
 }
-
-/**
- * @param {HTMLVideoElement} video
- */
-function Setup(video) {
-  Log('Setup');
-
-  const region = new Region(video);
-
-  /**
-   * @typedef {object} Data
-   * @property {boolean} data.didZoom
-   * @property {boolean} data.isZoomed
-   * @property {boolean} data.isZooming
-   * @property {DOMRect|null} videoRect
-   */
-
-  /** @type {Data} */
-  const data = {
-    didZoom: false,
-    isZoomed: false,
-    isZooming: false,
-    videoRect: null,
-  };
-
-  const toggles = {
-    ClickBegin: Toggler(
-      () => {
-        window.addEventListener('mousedown', ClickBegin);
-        window.addEventListener('mousedown', ClickBegin, true);
-      },
-      () => {
-        window.removeEventListener('mousedown', ClickBegin);
-        window.removeEventListener('mousedown', ClickBegin, true);
-      },
-    ),
-    ClickEnd: Toggler(
-      () => window.addEventListener('mouseup', ClickEnd, true),
-      () => window.removeEventListener('mouseup', ClickEnd, true),
-    ),
-    ClickMove: Toggler(
-      () => window.addEventListener('mousemove', ClickMove, true),
-      () => window.removeEventListener('mousemove', ClickMove, true),
-    ),
-    ResetZoom: Toggler(
-      () => window.addEventListener('contextmenu', ResetZoom, true),
-      () => window.removeEventListener('contextmenu', ResetZoom, true),
-    ),
-    StopClickWhenZoomed: Toggler(
-      () => window.addEventListener('click', StopClickWhenZoomed, true),
-      () => window.removeEventListener('click', StopClickWhenZoomed, true),
-    ),
-  };
-
-  toggles.ClickBegin(true);
-
-  video.style.transformOrigin = `0 0 0`;
-
-  // Helpers
-
-  function CleanUp() {
-    Log('CleanUp');
-
-    video.style.removeProperty('transform');
-    video.style.removeProperty('transformOrigin');
-
-    // remove listeners
-    for (const toggle of Object.values(toggles)) {
-      toggle(false);
-    }
-
-    // start over
-    GetVideo();
-  }
-
-  /** @param {MouseEvent} evt */
-  function getTranslatedCoords(evt) {
-    if (data.videoRect) {
-      return {
-        x: evt.clientX - data.videoRect.left + video.offsetLeft, //
-        y: evt.clientY - data.videoRect.top + video.offsetTop,
-      };
-    }
-    return { x: evt.clientX, y: evt.clientY };
-  }
-
-  // Listeners
-
-  /** @param {MouseEvent} evt */
-  function ClickBegin(evt) {
-    if (!VideoIsValid(video)) {
-      CleanUp();
-      return;
-    }
-
-    if (!IsLeftClick(evt) || !ClickedInside(video, evt)) {
-      return;
-    }
-
-    Log('ClickBegin');
-
-    if (evt.target === video) {
-      ConsumeEvent(evt);
-    }
-
-    toggles.ClickEnd(true);
-    toggles.ClickMove(true);
-
-    data.isZooming = true;
-    data.videoRect = video.getBoundingClientRect();
-
-    const { x, y } = getTranslatedCoords(evt);
-    region.setStart(x, y);
-  }
-
-  /** @param {MouseEvent} evt */
-  function ClickEnd(evt) {
-    Log('ClickEnd');
-
-    toggles.ClickEnd(false);
-    toggles.ClickMove(false);
-
-    data.isZooming = false;
-
-    {
-      const rect = region.getRect();
-      if (rect.width > 15 && rect.height > 15) {
-        ConsumeEvent(evt);
-
-        data.didZoom = true;
-        data.isZoomed = true;
-
-        toggles.ResetZoom(true);
-        toggles.StopClickWhenZoomed(true);
-
-        ApplyZoomToRect(video, rect);
-      }
-    }
-
-    region.hide();
-  }
-
-  /** @param {MouseEvent} evt */
-  function ClickMove(evt) {
-    Log('ClickMove');
-
-    if (!data.isZooming) {
-      toggles.ClickEnd(false);
-      toggles.ClickMove(false);
-      return;
-    }
-
-    const { x, y } = getTranslatedCoords(evt);
-    region.drawRect(x, y);
-  }
-
-  /** @param {MouseEvent} evt */
-  function ResetZoom(evt) {
-    Log('ResetZoom');
-
-    toggles.ResetZoom(false);
-
-    if (data.isZoomed) {
-      evt.stopPropagation();
-      evt.preventDefault();
-
-      data.isZoomed = false;
-
-      video.style.transform = '';
-
-      return false;
-    }
-    return true;
-  }
-
-  /** @param {MouseEvent} evt */
-  function StopClickWhenZoomed(evt) {
-    if (IsLeftClick(evt) && data.didZoom) {
-      Log('StopClickWhenZoomed');
-      data.didZoom = false;
-      toggles.StopClickWhenZoomed(false);
-      ConsumeEvent(evt);
-    }
-  }
+function IsMiddleClick(e) {
+    return e.button === 1;
 }
-
-/**
- * @param {HTMLVideoElement} video
- */
-function VideoIsValid(video) {
-  return video.isConnected && video.style.display !== 'none';
+function IsRightClick(e) {
+    return e.button === 2;
 }
-
-/**
- * @param {HTMLElement} el
- * @param {MouseEvent} evt
- */
-function ClickedInside(el, evt) {
-  const { left, top } = el.getBoundingClientRect();
-  const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = el;
-  const { clientX, clientY } = evt;
-  return (
-    clientX >= left + offsetLeft && //
-    clientX <= left + offsetLeft + offsetWidth &&
-    clientY >= top + offsetTop &&
-    clientY <= top + offsetTop + offsetHeight
-  );
+class Rect {
+    x = 0;
+    y = 0;
+    width = 0;
+    height = 0;
+    top = 0;
+    right = 0;
+    bottom = 0;
+    left = 0;
 }
-
-// const outline = document.createElement('div');
-// outline.style.position = 'fixed';
-// outline.style.top = '0';
-// outline.style.width = '100px';
-// outline.style.height = '100px';
-// outline.style.outline = '2px solid red';
-// outline.style.zIndex = '1000';
-// outline.style.pointerEvents = 'none';
-// document.body.append(outline);
-// /**
-//  * @param {HTMLElement} el
-//  */
-// function OutlineVideo(el) {
-//   const { left, top } = el.getBoundingClientRect();
-//   const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = el;
-//   outline.style.left = left + offsetLeft + 2 + 'px';
-//   outline.style.top = top + offsetTop + 2 + 'px';
-//   outline.style.width = offsetWidth - 4 + 'px';
-//   outline.style.height = offsetHeight - 4 + 'px';
-// }
-
+class Region {
+    elem;
+    startPoint;
+    endPoint;
+    constructor() {
+        this.elem = document.createElement('div');
+        this.elem.style.position = 'absolute';
+        this.elem.style.border = '2px solid red';
+        this.elem.style.pointerEvents = 'none';
+        this.elem.style.zIndex = '99999';
+        this.startPoint = { x: 0, y: 0 };
+        this.endPoint = { x: 0, y: 0 };
+        document.documentElement.appendChild(this.elem);
+        this.hide();
+    }
+    setStart(x, y) {
+        this.startPoint.x = x;
+        this.startPoint.y = y;
+    }
+    setEnd(x, y) {
+        this.endPoint.x = x;
+        this.endPoint.y = y;
+    }
+    drawRegion() {
+        const rect = this.getRect();
+        if (rect.width > 15 && rect.height > 15) {
+            this.elem.style.left = rect.x + 'px';
+            this.elem.style.top = rect.y + 'px';
+            this.elem.style.width = rect.width + 'px';
+            this.elem.style.height = rect.height + 'px';
+            this.show();
+        }
+        else {
+            this.elem.style.left = '0';
+            this.elem.style.top = '0';
+            this.elem.style.width = '0';
+            this.elem.style.height = '0';
+            this.hide();
+        }
+    }
+    getRect() {
+        let x1 = this.startPoint.x > this.endPoint.x ? this.endPoint.x : this.startPoint.x;
+        let y1 = this.startPoint.y > this.endPoint.y ? this.endPoint.y : this.startPoint.y;
+        let x2 = this.startPoint.x > this.endPoint.x ? this.startPoint.x : this.endPoint.x;
+        let y2 = this.startPoint.y > this.endPoint.y ? this.startPoint.y : this.endPoint.y;
+        return {
+            x: x1,
+            y: y1,
+            width: x2 - x1,
+            height: y2 - y1,
+            left: x1,
+            right: x2,
+            top: y1,
+            bottom: y2,
+        };
+    }
+    show() {
+        this.elem.style.display = 'block';
+    }
+    hide() {
+        this.elem.style.display = 'none';
+    }
+}
+class VideoHandler {
+    elem;
+    region = new Region();
+    zoomScale = 1;
+    zoomX = 0;
+    zoomY = 0;
+    constructor(elem) {
+        this.elem = elem;
+        if (this.elem) {
+            this.elem.style.transformOrigin = `0 0 0`;
+        }
+    }
+    isClickedInside(evt) {
+        if (this.elem && this.elem.offsetParent) {
+            const { x, y } = this.elem.offsetParent.getBoundingClientRect();
+            const left = x + this.elem.offsetLeft;
+            const top = y + this.elem.offsetTop;
+            const right = left + this.elem.offsetWidth;
+            const bottom = top + this.elem.offsetHeight;
+            return evt.clientX >= left && evt.clientX <= right && evt.clientY >= top && evt.clientY <= bottom;
+        }
+        return false;
+    }
+    getBoundingClientRect() {
+        if (this.elem) {
+            return this.elem.getBoundingClientRect();
+        }
+        return new Rect();
+    }
+    getRelativeCoords(x, y) {
+        if (this.elem) {
+            return {
+                x: x - this.getBoundingClientRect().left + this.elem.offsetLeft,
+                y: y - this.getBoundingClientRect().top + this.elem.offsetTop,
+            };
+        }
+        return { x: x, y: y };
+    }
+    reset() {
+        Log('VideoHandler.Reset');
+        this.resetZoom();
+        GetVideo();
+    }
+    applyZoom() {
+        this.region.hide();
+        if (this.elem) {
+            Log('VideoHandler.applyZoom');
+            const regionRect = this.region.getRect();
+            const { x: relativeX, y: relativeY } = this.getRelativeCoords(regionRect.x, regionRect.y);
+            const offset = { x: this.elem.offsetLeft, y: this.elem.offsetTop, width: this.elem.offsetWidth, height: this.elem.offsetHeight };
+            const region = { x: relativeX, y: relativeY, width: regionRect.width, height: regionRect.height };
+            // get ratios of video size / rectangle size
+            const xScale = offset.width / region.width;
+            const yScale = offset.height / region.height;
+            // choose the smaller scale
+            this.zoomScale = xScale < yScale ? xScale : yScale;
+            // calculate the zoom coordinates
+            this.zoomX = region.x * this.zoomScale - (offset.width - region.width * this.zoomScale) / 2 - offset.x * this.zoomScale;
+            this.zoomY = region.y * this.zoomScale - (offset.height - region.height * this.zoomScale) / 2 - offset.y * this.zoomScale;
+            this.zoomX = this.zoomX < 0 ? 0 : -1 * this.zoomX;
+            this.zoomY = this.zoomY < 0 ? 0 : -1 * this.zoomY;
+            this.elem.style.transformOrigin = `0 0 0`;
+            this.elem.style.scale = `${this.zoomScale}`;
+            this.elem.style.translate = `${this.zoomX}px ${this.zoomY}px`;
+        }
+    }
+    moveZoom(deltaX, deltaY) {
+        if (this.elem) {
+            Log('VideoHandler.moveZoom');
+            this.zoomX += deltaX;
+            this.zoomY += deltaY;
+            this.elem.style.translate = `${this.zoomX}px ${this.zoomY}px`;
+        }
+    }
+    resetZoom() {
+        if (this.elem) {
+            Log('VideoHandler.resetZoom');
+            this.zoomScale = 1;
+            this.elem.style.removeProperty('transformOrigin');
+            this.elem.style.removeProperty('scale');
+            this.elem.style.removeProperty('translate');
+        }
+    }
+    get isZoomed() {
+        return this.zoomScale !== 1;
+    }
+}
+const mouseHandlers = {
+    HandleMouse_Begin: Toggler(() => {
+        window.addEventListener('mousedown', HandleMouse_Begin);
+        window.addEventListener('mousedown', HandleMouse_Begin, true);
+    }, () => {
+        window.removeEventListener('mousedown', HandleMouse_Begin);
+        window.removeEventListener('mousedown', HandleMouse_Begin, true);
+    }),
+    HandleMouse_End: Toggler(() => window.addEventListener('mouseup', HandleMouse_End, true), () => window.removeEventListener('mouseup', HandleMouse_End, true)),
+    HandleMouse_Move: Toggler(() => window.addEventListener('mousemove', HandleMouse_Move, true), () => window.removeEventListener('mousemove', HandleMouse_Move, true)),
+    HandleMouse_ResetZoom: Toggler(() => window.addEventListener('contextmenu', HandleMouse_ResetZoom, true), () => window.removeEventListener('contextmenu', HandleMouse_ResetZoom, true)),
+};
+let videoHandler = new VideoHandler(undefined);
 function GetVideo() {
-  Promise.all([
-    PollForElement(VIDEO_QUERY, 250), //
-  ]).then(([video]) => {
-    if (video instanceof HTMLVideoElement) {
-      Setup(video);
+    // reset mouse handlers
+    for (const toggle of Object.values(mouseHandlers)) {
+        toggle(false);
     }
-  });
+    // look for video element
+    Promise.all([PollForElement(VIDEO_QUERY, 250)]).then(([elem]) => {
+        if (elem instanceof HTMLVideoElement && elem.isConnected && elem.style.display !== 'none') {
+            Log('Setup VideoHandler');
+            videoHandler = new VideoHandler(elem);
+            mouseHandlers.HandleMouse_Begin(true);
+        }
+    });
 }
 GetVideo();
-
-//
-// lib
-//
-
-/**
- * @param {*} args
- */
-function Log(...args) {
-  if (false) console.log(...args);
-}
-
-/**
- * @param {Event} evt
- */
-function ConsumeEvent(evt) {
-  evt.stopPropagation();
-  evt.preventDefault();
-  evt.stopImmediatePropagation();
-}
-
-/**
- * @param {string} query
- * @param {number} ms
- * @return {Promise<HTMLElement>}
- */
-function PollForElement(query, ms) {
-  return new Promise((resolve) => {
-    (function search() {
-      for (const el of document.querySelectorAll(query)) {
-        if (el instanceof HTMLElement && el.style.display !== 'none') {
-          return resolve(el);
+let oldClientX = 0;
+let oldClientY = 0;
+function HandleMouse_Begin(evt) {
+    Log('HandleMouse_Begin');
+    if (IsLeftClick(evt) && videoHandler.elem && videoHandler.isClickedInside(evt)) {
+        if (evt.ctrlKey || evt.altKey) {
+            ConsumeEvent(evt);
         }
-      }
-      setTimeout(search, ms);
-    })();
-  });
+        oldClientX = evt.clientX;
+        oldClientY = evt.clientY;
+        mouseHandlers.HandleMouse_End(true);
+        mouseHandlers.HandleMouse_Move(true);
+        if (!videoHandler.isZoomed) {
+            // const { x, y } = videoHandler.getTranslatedCoords(evt);
+            videoHandler.region.setStart(evt.clientX, evt.clientY);
+            videoHandler.region.setEnd(evt.clientX, evt.clientY);
+        }
+    }
 }
-
-/**
- * @param {()=>void} onEnable
- * @param {()=>void} onDisable
- * @returns {(enable:any=undefined)=>void}
- */
-function Toggler(onEnable, onDisable) {
-  let isEnabled = false;
-  return (enable = undefined) => {
-    if (isEnabled === enable) return;
-    isEnabled = !isEnabled;
-    isEnabled ? onEnable() : onDisable();
-  };
+function HandleMouse_Move(evt) {
+    Log('HandleMouse_Move');
+    if (videoHandler.isZoomed) {
+        videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
+        oldClientX = evt.clientX;
+        oldClientY = evt.clientY;
+    }
+    else {
+        // const { x, y } = videoHandler.getTranslatedCoords(evt);
+        videoHandler.region.setEnd(evt.clientX, evt.clientY);
+        videoHandler.region.drawRegion();
+    }
 }
-
-/**
- * @param {MouseEvent} evt
- * @return {boolean}
- */
-function IsLeftClick(evt) {
-  return evt.button === 0;
+function HandleMouse_End(evt) {
+    Log('HandleMouse_End');
+    mouseHandlers.HandleMouse_End(false);
+    mouseHandlers.HandleMouse_Move(false);
+    const { width, height } = videoHandler.region.getRect();
+    if (width > 15 && height > 15) {
+        ConsumeEvent(evt);
+        if (!videoHandler.isZoomed) {
+            mouseHandlers.HandleMouse_ResetZoom(true);
+            videoHandler.applyZoom();
+        }
+    }
 }
-
-/**
- * @param {MouseEvent} evt
- * @return {boolean}
- */
-function IsMiddleClick(evt) {
-  return evt.button === 1;
+function HandleMouse_ResetZoom(evt) {
+    Log('HandleMouse_ResetZoom');
+    if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
+        ConsumeEvent(evt);
+        mouseHandlers.HandleMouse_ResetZoom(false);
+        videoHandler.resetZoom();
+    }
 }
-
-/**
- * @param {MouseEvent} evt
- * @return {boolean}
- */
-function IsRightClick(evt) {
-  return evt.button === 2;
+function Log(...args) {
+    if (true)
+        console.info('%cVideo Zoom:', 'color: red', ...args);
 }
+Log('Loaded');
