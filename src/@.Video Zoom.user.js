@@ -3,7 +3,7 @@
 // @author      ericchase
 // @namespace   ericchase
 // @match       *://*/*
-// @version     1.0.7
+// @version     1.0.8
 // @description 1/23/2022, 12:58:35 AM
 // @run-at      document-start
 // @grant       none
@@ -164,14 +164,12 @@ class VideoHandler {
     return { x, y };
   }
   reset() {
-    Log('VideoHandler.Reset');
     this.resetZoom();
     GetVideo();
   }
   applyZoom() {
     this.region.hide();
     if (this.elem) {
-      Log('VideoHandler.applyZoom');
       const regionRect = this.region.getRect();
       const offset = { x: this.elem.offsetLeft, y: this.elem.offsetTop, width: this.elem.offsetWidth, height: this.elem.offsetHeight };
       const region = { x: regionRect.x, y: regionRect.y, width: regionRect.width, height: regionRect.height };
@@ -189,7 +187,6 @@ class VideoHandler {
   }
   moveZoom(deltaX, deltaY) {
     if (this.elem) {
-      Log('VideoHandler.moveZoom');
       this.zoomX += deltaX;
       this.zoomY += deltaY;
       this.elem.style.translate = `${this.zoomX}px ${this.zoomY}px`;
@@ -197,7 +194,6 @@ class VideoHandler {
   }
   resetZoom() {
     if (this.elem) {
-      Log('VideoHandler.resetZoom');
       this.zoomScale = 1;
       this.elem.style.removeProperty('transformOrigin');
       this.elem.style.removeProperty('scale');
@@ -249,7 +245,6 @@ function GetVideo() {
   }
   Promise.all([PollForElement(VIDEO_QUERY, 250)]).then(([elem]) => {
     if (elem instanceof HTMLVideoElement && elem.isConnected && elem.style.display !== 'none') {
-      Log('Setup VideoHandler');
       videoHandler = new VideoHandler(elem);
       mouseHandlers.HandleMouse_Begin(true);
     }
@@ -260,7 +255,6 @@ let consumeNextClick = false;
 let oldClientX = 0;
 let oldClientY = 0;
 function HandleMouse_Begin(evt) {
-  Log('HandleMouse_Begin');
   if (IsLeftClick(evt) && videoHandler.elem && videoHandler.isClickedInside(evt)) {
     if (evt.ctrlKey || evt.altKey) {
       ConsumeEvent(evt);
@@ -278,7 +272,6 @@ function HandleMouse_Begin(evt) {
   }
 }
 function HandleMouse_Move(evt) {
-  Log('HandleMouse_Move');
   if (videoHandler.isZoomed) {
     if (oldClientX !== evt.clientX || oldClientY !== evt.clientY) {
       consumeNextClick = true;
@@ -293,7 +286,6 @@ function HandleMouse_Move(evt) {
   }
 }
 function HandleMouse_End(evt) {
-  Log('HandleMouse_End');
   mouseHandlers.HandleMouse_End(false);
   mouseHandlers.HandleMouse_Move(false);
   const { width, height } = videoHandler.region.getRect();
@@ -308,7 +300,6 @@ function HandleMouse_End(evt) {
   videoHandler.region.reset();
 }
 function HandleClick(evt) {
-  Log('HandleClick');
   if (IsLeftClick(evt) && videoHandler.elem && videoHandler.isClickedInside(evt)) {
     if (consumeNextClick || evt.ctrlKey || evt.altKey) {
       consumeNextClick = false;
@@ -317,14 +308,9 @@ function HandleClick(evt) {
   }
 }
 function HandleMouse_ResetZoom(evt) {
-  Log('HandleMouse_ResetZoom');
   if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
     ConsumeEvent(evt);
     mouseHandlers.HandleMouse_ResetZoom(false);
     videoHandler.resetZoom();
   }
 }
-function Log(...args) {
-  console.info('%cVideo Zoom:', 'color: red', ...args);
-}
-Log('Loaded');
