@@ -188,10 +188,14 @@ const mouseHandlers = {
     () => {
       window.addEventListener('mousedown', HandleMouse_Begin);
       window.addEventListener('mousedown', HandleMouse_Begin, true);
+      window.addEventListener('click', HandleClick);
+      window.addEventListener('click', HandleClick, true);
     },
     () => {
       window.removeEventListener('mousedown', HandleMouse_Begin);
       window.removeEventListener('mousedown', HandleMouse_Begin, true);
+      window.removeEventListener('click', HandleClick);
+      window.removeEventListener('click', HandleClick, true);
     },
   ),
   HandleMouse_End: Toggler(
@@ -266,6 +270,13 @@ function HandleMouse_End(evt: MouseEvent) {
     if (!videoHandler.isZoomed) {
       mouseHandlers.HandleMouse_ResetZoom(true);
       videoHandler.applyZoom();
+    }
+  }
+}
+function HandleClick(evt: MouseEvent) {
+  if (IsLeftClick(evt) && videoHandler.elem && videoHandler.isClickedInside(evt)) {
+    if (evt.ctrlKey || evt.altKey) {
+      ConsumeEvent(evt);
     }
   }
 }
