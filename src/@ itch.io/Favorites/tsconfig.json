@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    // Enable latest features
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "target": "ESNext",
+
+    // Bundler mode
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": true,
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Out
+    "declaration": true,
+    "outDir": "compiled-js",
+    "rootDir": "./src"
+  },
+  "exclude": ["*.config.ts"],
+  "include": ["./src"],
+  "watchOptions": {
+    "watchDirectory": "useFsEvents",
+    "watchFile": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": true
+  }
+}

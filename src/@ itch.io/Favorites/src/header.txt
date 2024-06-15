@@ -1,0 +1,11 @@
+==UserScript==
+@name        itch.io: Favorites Button
+@author      ericchase, nazCodeland
+@namespace   ericchase
+@match       *://itch.io/*
+@version     ${version}
+@description 5/5/2024, 7:21:16 PM
+@run-at      document-start
+@grant       none
+@homepageURL https://github.com/ericchase/userscript--itch.io-favorites
+==/UserScript==
