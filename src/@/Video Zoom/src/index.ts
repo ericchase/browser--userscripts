@@ -37,8 +37,11 @@ class Region {
     this.elem.style.zIndex = '99999';
     this.startPoint = { x: 0, y: 0 };
     this.endPoint = { x: 0, y: 0 };
-    document.documentElement.appendChild(this.elem);
     this.hide();
+  }
+
+  attach(sibling: HTMLElement) {
+    sibling.insertAdjacentElement('afterend', this.elem);
   }
 
   setStart(this: Region, x: number, y: number) {
@@ -90,17 +93,18 @@ class Region {
   hide(this: Region) {
     this.elem.style.display = 'none';
   }
+  reset(this: Region) {
+    this.startPoint = { x: 0, y: 0 };
+    this.endPoint = { x: 0, y: 0 };
+    this.hide();
+  }
 }
 class VideoHandler {
   region: Region = new Region();
   zoomScale = 1;
   zoomX = 0;
   zoomY = 0;
-  constructor(public elem: HTMLVideoElement | undefined) {
-    if (this.elem) {
-      this.elem.style.transformOrigin = `0 0 0`;
-    }
-  }
+  constructor(public elem: HTMLVideoElement | undefined) {}
   isClickedInside(this: VideoHandler, evt: MouseEvent) {
     if (this.elem && this.elem.offsetParent) {
       const { x, y } = this.elem.offsetParent.getBoundingClientRect();
@@ -138,9 +142,8 @@ class VideoHandler {
     if (this.elem) {
       Log('VideoHandler.applyZoom');
       const regionRect = this.region.getRect();
-      const { x: relativeX, y: relativeY } = this.getRelativeCoords(regionRect.x, regionRect.y);
       const offset = { x: this.elem.offsetLeft, y: this.elem.offsetTop, width: this.elem.offsetWidth, height: this.elem.offsetHeight };
-      const region = { x: relativeX, y: relativeY, width: regionRect.width, height: regionRect.height };
+      const region = { x: regionRect.x, y: regionRect.y, width: regionRect.width, height: regionRect.height };
 
       // get ratios of video size / rectangle size
       const xScale = offset.width / region.width;
@@ -198,13 +201,19 @@ const mouseHandlers = {
       window.removeEventListener('click', HandleClick, true);
     },
   ),
-  HandleMouse_End: Toggler(
-    () => window.addEventListener('mouseup', HandleMouse_End, true),
-    () => window.removeEventListener('mouseup', HandleMouse_End, true),
-  ),
   HandleMouse_Move: Toggler(
     () => window.addEventListener('mousemove', HandleMouse_Move, true),
     () => window.removeEventListener('mousemove', HandleMouse_Move, true),
+  ),
+  HandleMouse_End: Toggler(
+    () => {
+      window.addEventListener('mouseup', HandleMouse_End);
+      window.addEventListener('mouseup', HandleMouse_End, true);
+    },
+    () => {
+      window.removeEventListener('mouseup', HandleMouse_End);
+      window.removeEventListener('mouseup', HandleMouse_End, true);
+    },
   ),
   HandleMouse_ResetZoom: Toggler(
     () => window.addEventListener('contextmenu', HandleMouse_ResetZoom, true),
@@ -229,6 +238,7 @@ function GetVideo() {
 }
 GetVideo();
 
+let consumeNextClick = false;
 let oldClientX = 0;
 let oldClientY = 0;
 function HandleMouse_Begin(evt: MouseEvent) {
@@ -242,21 +252,25 @@ function HandleMouse_Begin(evt: MouseEvent) {
     mouseHandlers.HandleMouse_End(true);
     mouseHandlers.HandleMouse_Move(true);
     if (!videoHandler.isZoomed) {
-      // const { x, y } = videoHandler.getTranslatedCoords(evt);
-      videoHandler.region.setStart(evt.clientX, evt.clientY);
-      videoHandler.region.setEnd(evt.clientX, evt.clientY);
+      videoHandler.region.attach(videoHandler.elem);
+      const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
+      videoHandler.region.setStart(x, y);
+      videoHandler.region.setEnd(x, y);
     }
   }
 }
 function HandleMouse_Move(evt: MouseEvent) {
   Log('HandleMouse_Move');
   if (videoHandler.isZoomed) {
-    videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
-    oldClientX = evt.clientX;
-    oldClientY = evt.clientY;
+    if (oldClientX !== evt.clientX || oldClientY !== evt.clientY) {
+      consumeNextClick = true;
+      videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
+      oldClientX = evt.clientX;
+      oldClientY = evt.clientY;
+    }
   } else {
-    // const { x, y } = videoHandler.getTranslatedCoords(evt);
-    videoHandler.region.setEnd(evt.clientX, evt.clientY);
+    const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
+    videoHandler.region.setEnd(x, y);
     videoHandler.region.drawRegion();
   }
 }
@@ -270,12 +284,16 @@ function HandleMouse_End(evt: MouseEvent) {
     if (!videoHandler.isZoomed) {
       mouseHandlers.HandleMouse_ResetZoom(true);
       videoHandler.applyZoom();
+      consumeNextClick = true;
     }
   }
+  videoHandler.region.reset();
 }
 function HandleClick(evt: MouseEvent) {
+  Log('HandleClick');
   if (IsLeftClick(evt) && videoHandler.elem && videoHandler.isClickedInside(evt)) {
-    if (evt.ctrlKey || evt.altKey) {
+    if (consumeNextClick || evt.ctrlKey || evt.altKey) {
+      consumeNextClick = false;
       ConsumeEvent(evt);
     }
   }

@@ -1,7 +1,7 @@
 export function ConsumeEvent(e: Event) {
-  e.stopPropagation();
   e.preventDefault();
   e.stopImmediatePropagation();
+  e.stopPropagation();
 }
 
 export function IsLeftClick(e: MouseEvent) {

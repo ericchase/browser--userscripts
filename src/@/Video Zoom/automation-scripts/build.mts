@@ -1,6 +1,16 @@
+import node_fs from 'node:fs/promises';
 import { ReadFile, WriteFile } from './lib/Node/Fs.mts';
 import { Run } from './lib/Node/Process.mts';
 import { GetSemanticVersion } from './lib/Web/Browser/Addon.mts';
+
+function comment(s: string) {
+  return s.length === 0
+    ? ''
+    : s
+        .split('\n')
+        .map((line) => '// ' + line)
+        .join('\n');
+}
 
 await Run({ program: 'bun', args: ['run', 'vite', 'build'] });
 
@@ -22,14 +32,5 @@ ${script}
 
 const { displayName } = await JSON.parse(await ReadFile('./package.json'));
 await WriteFile(`./${displayName}.user.js`, userscript);
-
 await Run({ program: 'bun', args: ['run', 'format'] });
-
-function comment(s: string) {
-  return s.length === 0
-    ? ''
-    : s
-        .split('\n')
-        .map((line) => '// ' + line)
-        .join('\n');
-}
+await node_fs.copyFile(`./${displayName}.user.js`, `../../${displayName}.user.js`);

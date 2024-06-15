@@ -5,8 +5,15 @@ export async function DeleteFile(path: string) {
   await node_fs.rm(path, { force: true });
 }
 
-export async function ReadFile(path: string) {
-  return await node_fs.readFile(path, { encoding: 'utf8' });
+export async function ReadFile(path: string, ignore_error = false) {
+  try {
+    return await node_fs.readFile(path, { encoding: 'utf8' });
+  } catch (err) {
+    if (ignore_error) {
+      return '';
+    }
+    throw err;
+  }
 }
 
 export async function WriteFile(path: string, string: string) {
