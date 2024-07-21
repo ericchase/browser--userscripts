@@ -3,7 +3,7 @@
 // @author      ericchase
 // @namespace   ericchase
 // @match       https://github.com/*
-// @version     1.1.3
+// @version     1.1.4
 // @description 3/12/2024, 2:56:09 AM
 // @run-at      document-start
 // @grant       none
@@ -560,7 +560,7 @@ function dbv1_add(url) {
       const orderIndex = store.index('order');
       const cursorQuery = orderIndex.openCursor(null, 'prev');
       cursorQuery.onerror = function () {
-        console.log('Error', cursorQuery.error);
+        console.error('Error', cursorQuery.error);
         resolve(false);
       };
       cursorQuery.onsuccess = function () {
@@ -570,7 +570,7 @@ function dbv1_add(url) {
         const order = row ? row.order + 1 : 0;
         const addQuery = store.add({ url, order });
         addQuery.onerror = function () {
-          console.log('Error', addQuery.error);
+          console.error('Error', addQuery.error);
           resolve(false);
         };
         addQuery.onsuccess = function () {
@@ -589,7 +589,7 @@ function dbv1_clear() {
     dbv1_open('readwrite', async function ({ store }) {
       const clearQuery = store.clear();
       clearQuery.onerror = function () {
-        console.log('Error', clearQuery.error);
+        console.error('Error', clearQuery.error);
         resolve(false);
       };
       clearQuery.onsuccess = function () {
@@ -609,7 +609,7 @@ function dbv1_delete(url) {
     dbv1_open('readwrite', async function ({ store }) {
       const deleteQuery = store.delete(url);
       deleteQuery.onerror = function () {
-        console.log('Error', deleteQuery.error);
+        console.error('Error', deleteQuery.error);
         resolve(false);
       };
       deleteQuery.onsuccess = function () {
@@ -629,7 +629,7 @@ function dbv1_put(url, order) {
     dbv1_open('readwrite', async function ({ store }) {
       const putQuery = store.put({ url, order });
       putQuery.onerror = function () {
-        console.log('Error', putQuery.error);
+        console.error('Error', putQuery.error);
         resolve(false);
       };
       putQuery.onsuccess = function () {
@@ -646,7 +646,7 @@ function dbv1_raise(url) {
   dbv1_open('readwrite', async function ({ store }) {
     const currentQuery = store.get(url);
     currentQuery.onerror = function () {
-      console.log('Error', currentQuery.error);
+      console.error('Error', currentQuery.error);
     };
     currentQuery.onsuccess = function () {
       /** @type {DBRow} */
@@ -683,7 +683,7 @@ function dbv1_lower(url) {
   dbv1_open('readwrite', async function ({ store }) {
     const currentQuery = store.get(url);
     currentQuery.onerror = function () {
-      console.log('Error', currentQuery.error);
+      console.error('Error', currentQuery.error);
     };
     currentQuery.onsuccess = function () {
       /** @type {DBRow} */
