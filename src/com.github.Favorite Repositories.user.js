@@ -15,6 +15,13 @@ const getOrderedListTask = dbv1_getOrdered();
 const avatarCache = new Map();
 /** @type {Set<HTMLElement>} */
 const processedSet = new Set();
+/** @type {Set<{
+_element: HTMLDivElement;
+title: HTMLHeadingElement;
+list: HTMLUListElement;
+margin: HTMLDivElement;
+}>} */
+const favoritesSectionSet = new Set();
 
 /** @type {HTMLElement[]} */
 const undoElements = [];
@@ -131,21 +138,31 @@ async function setupFavoritesList(repositoryList) {
     const newSection = createFavoritesSection();
     repositoryList.parentElement?.insertBefore(newSection._element, repositoryList);
     // originalList.toggleAttribute('hidden', true);
-    populateFavoritesList(newSection.list);
+    populateFavoritesList(newSection.list, await getOrderedListTask);
+    favoritesSectionSet.add(newSection);
   }
 }
 
 /**
- * @param {HTMLUListElement} list
+ * @param {HTMLUListElement} list_element
+ * @param {DBRow[]} row_list
  */
-async function populateFavoritesList(list) {
-  for (const { url } of await getOrderedListTask) {
+function populateFavoritesList(list_element, row_list) {
+  for (const { url } of row_list) {
     const [_, userName, ...repoParts] = new URL(url).pathname.split('/');
     const repoName = repoParts.join('/');
     const item = createRepositoryListItem(userName, repoName);
-    list.appendChild(item);
-    addDatabaseOperations(list, item, url);
+    list_element.appendChild(item);
+    addDatabaseOperations(list_element, item, url);
     // makeDraggable(item);
+  }
+}
+
+async function resetFavoritesSections() {
+  for (const section of favoritesSectionSet.values()) {
+    section.list.replaceChildren();
+    populateFavoritesList(section.list, await dbv1_getOrdered());
+    console.log('List Reset:', section.list);
   }
 }
 
@@ -245,21 +262,51 @@ function createFavoritesSection() {
 
   const div = createElement('div', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
   const title = createElement('h2', { classList: ['f5'], textContent: 'Favorite Repositories' });
-  const undo = createElement('a', { classList: ['ml-2'], textContent: 'undo' });
-  undo.toggleAttribute('hidden', true);
-  undo.href = '#';
-  undo.addEventListener('click', (ev) => {
+  const undo_button = createElement('a', { classList: ['ml-2'], textContent: 'undo' });
+  undo_button.toggleAttribute('hidden', true);
+  undo_button.href = '#';
+  undo_button.addEventListener('click', (ev) => {
     ev.preventDefault();
     undoOnce();
   });
-  div.append(title, undo);
-  undoElements.push(undo);
+  div.append(title, undo_button);
+  undoElements.push(undo_button);
+  _element.appendChild(div);
+
+  const buttons = createElement('div', { classList: ['d-flex', 'flex-items-center'] });
+  //
+  const export_button = createElement('a', { classList: ['ml-2'], textContent: 'export' });
+  export_button.href = '#';
+  export_button.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    database_export();
+  });
+  buttons.appendChild(export_button);
+  //
+  const import_button = createElement('a', { classList: ['ml-2'], textContent: 'import' });
+  import_button.href = '#';
+  import_button.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    database_import();
+  });
+  buttons.appendChild(import_button);
+  //
+  const clear_button = createElement('a', { classList: ['ml-4'], textContent: 'delete all' });
+  clear_button.href = '#';
+  clear_button.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    database_clear();
+  });
+  buttons.appendChild(clear_button);
+  //
+  _element.appendChild(buttons);
 
   const list = createElement('ul', { classList: ['list-style-none'] });
-  const margin = createElement('div', { classList: ['mt-3'] });
-  _element.appendChild(div);
   _element.appendChild(list);
+
+  const margin = createElement('div', { classList: ['mt-3'] });
   _element.appendChild(margin);
+
   return { _element, title, list, margin };
 }
 
@@ -299,7 +346,9 @@ function createRepositoryListItem(userName, repoName) {
   const pictureA = createElement('a', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
   containerDiv.appendChild(pictureA);
   pictureA.href = `/${userName}/${repoName}`;
-  const pictureImg = createElement('img', { classList: ['avatar', 'avatar-user', 'avatar-small', 'circle'] });
+  const pictureImg = createElement('img', {
+    classList: ['avatar', 'avatar-user', 'avatar-small', 'circle'],
+  });
   pictureA.appendChild(pictureImg);
   pictureImg.setAttribute('width', '16');
   pictureImg.setAttribute('height', '16');
@@ -307,7 +356,9 @@ function createRepositoryListItem(userName, repoName) {
   getUserAvatar(userName, pictureImg);
   const nameDiv = createElement('div', { classList: ['wb-break-word'] });
   containerDiv.appendChild(nameDiv);
-  const nameA = createElement('a', { classList: ['color-fg-default', 'lh-0', 'mb-2', 'markdown-title'] });
+  const nameA = createElement('a', {
+    classList: ['color-fg-default', 'lh-0', 'mb-2', 'markdown-title'],
+  });
   nameDiv.appendChild(nameA);
   nameA.href = `/${userName}/${repoName}`;
   nameA.append(document.createTextNode(userName));
@@ -531,6 +582,25 @@ function dbv1_add(url) {
 }
 
 /**
+ * @returns {Promise<boolean>}
+ */
+function dbv1_clear() {
+  return new Promise((resolve) => {
+    dbv1_open('readwrite', async function ({ store }) {
+      const clearQuery = store.clear();
+      clearQuery.onerror = function () {
+        console.log('Error', clearQuery.error);
+        resolve(false);
+      };
+      clearQuery.onsuccess = function () {
+        console.log('Favorites List Database Cleared');
+        resolve(true);
+      };
+    });
+  });
+}
+
+/**
  * @param {string} url
  * @returns {Promise<boolean>}
  */
@@ -641,4 +711,53 @@ function dbv1_lower(url) {
       };
     };
   });
+}
+
+async function database_export() {
+  const urls = (await dbv1_getOrdered()).map(({ url }) => url);
+  const currentDate = new Date().toJSON().slice(0, 19).replace('T', ' [').replaceAll(':', '.') + ']';
+  const element = document.createElement('a');
+  element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(urls)));
+  element.setAttribute('download', 'github-favorites-backup ' + currentDate + '.json');
+  document.body.appendChild(element);
+  element.click();
+  console.log('Favorites List Exported');
+  document.body.removeChild(element);
+}
+
+async function database_import() {
+  const input = document.createElement('input');
+  input.setAttribute('type', 'file');
+  input.setAttribute('accept', 'application/json');
+  document.body.appendChild(input);
+  try {
+    const urllist = await new Promise((resolve, reject) => {
+      input.addEventListener('change', async () => {
+        if (input.files?.length && input.files.length > 0) {
+          return resolve(JSON.parse(await input.files[0].text()));
+        }
+        return reject();
+      });
+      input.click();
+    });
+    if (Array.isArray(urllist)) {
+      if (prompt(`These repositories will be added to your list:\n\n${urllist.join('\n')}\n\n`, 'Click OK to import or Cancel to abort.') !== null) {
+        for (const url of urllist) {
+          await dbv1_add(url);
+        }
+        console.log('Favorites List Imported');
+        await resetFavoritesSections();
+      }
+    }
+  } catch (err) {}
+  document.body.removeChild(input);
+}
+
+async function database_clear() {
+  if (prompt(`ALL FAVORITED REPOSITORIES WILL BE DELETED!\n\nAre you sure you want to delete your favorites list?\n\n`, 'Click OK to confirm or Cancel to abort.') !== null) {
+    if (prompt(`ALL FAVORITED REPOSITORIES WILL BE DELETED!\n\nAre you VERY sure you want to delete your favorites list?\n\n`, 'Click OK to DELETE EVERYTHING or Cancel to abort.') !== null) {
+      await dbv1_clear();
+      await resetFavoritesSections();
+    }
+  }
 }
