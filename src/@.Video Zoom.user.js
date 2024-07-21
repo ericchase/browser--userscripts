@@ -16,8 +16,7 @@
 // https://www.apache.org/licenses/LICENSE-2.0
 
 var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) =>
-  key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : (obj[key] = value);
+var __defNormalProp = (obj, key, value) => (key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : (obj[key] = value));
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== 'symbol' ? key + '' : key, value);
 function ConsumeEvent(e) {
   e.preventDefault();
@@ -171,8 +170,18 @@ class VideoHandler {
     this.region.hide();
     if (this.elem) {
       const regionRect = this.region.getRect();
-      const offset = { x: this.elem.offsetLeft, y: this.elem.offsetTop, width: this.elem.offsetWidth, height: this.elem.offsetHeight };
-      const region = { x: regionRect.x, y: regionRect.y, width: regionRect.width, height: regionRect.height };
+      const offset = {
+        x: this.elem.offsetLeft,
+        y: this.elem.offsetTop,
+        width: this.elem.offsetWidth,
+        height: this.elem.offsetHeight,
+      };
+      const region = {
+        x: regionRect.x,
+        y: regionRect.y,
+        width: regionRect.width,
+        height: regionRect.height,
+      };
       const xScale = offset.width / region.width;
       const yScale = offset.height / region.height;
       this.zoomScale = xScale < yScale ? xScale : yScale;

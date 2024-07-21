@@ -3,7 +3,6 @@
   "scripts": {
     "build": "bun run ./tools/build.ts",
     "dev": "bun run ./tools/watch-build.ts",
-    
     "build": "bun ./automation-scripts/build.mts",
     "bundle": "bun ./automation-scripts/bundle.mts",
     "dev": "bun ./automation-scripts/dev.mts",

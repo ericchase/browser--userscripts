@@ -66,7 +66,7 @@ let setupComplete = false;
     });
 
     Promise.allSettled([
-      waitFor('[data-a-target="player-overlay-click-handler"]'),
+      waitFor('[data-a-target="player-overlay-click-handler"]'), //
       waitFor('[data-a-target="player-volume-slider"]'),
       waitFor('[data-test-selector="tw-range__fill-value-selector"]'),
     ]).then(function (outcomes) {

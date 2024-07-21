@@ -300,7 +300,9 @@ function createRepositoryListItem(userName, repoName) {
   const pictureA = createElement('a', { classList: ['mr-2', 'd-flex', 'flex-items-center'] });
   containerDiv.appendChild(pictureA);
   pictureA.href = `/${userName}/${repoName}`;
-  const pictureImg = createElement('img', { classList: ['avatar', 'avatar-user', 'avatar-small', 'circle'] });
+  const pictureImg = createElement('img', {
+    classList: ['avatar', 'avatar-user', 'avatar-small', 'circle'],
+  });
   pictureA.appendChild(pictureImg);
   pictureImg.setAttribute('width', '16');
   pictureImg.setAttribute('height', '16');
@@ -308,7 +310,9 @@ function createRepositoryListItem(userName, repoName) {
   getUserAvatar(userName, pictureImg);
   const nameDiv = createElement('div', { classList: ['wb-break-word'] });
   containerDiv.appendChild(nameDiv);
-  const nameA = createElement('a', { classList: ['color-fg-default', 'lh-0', 'mb-2', 'markdown-title'] });
+  const nameA = createElement('a', {
+    classList: ['color-fg-default', 'lh-0', 'mb-2', 'markdown-title'],
+  });
   nameDiv.appendChild(nameA);
   nameA.href = `/${userName}/${repoName}`;
   nameA.append(document.createTextNode(userName));

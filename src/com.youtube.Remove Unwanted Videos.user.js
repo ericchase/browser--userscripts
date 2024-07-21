@@ -21,7 +21,7 @@ const config = {
 };
 
 const text_to_remove = [
-  'Acoustic',
+  'Acoustic', //
   'Beats',
   'China',
   'Covers',

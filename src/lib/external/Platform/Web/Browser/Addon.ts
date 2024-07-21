@@ -1,4 +1,4 @@
-import { ReadFile, WriteFile } from '../../Node/Fs.mts';
+import { ReadFile, WriteFile } from '../../Node/Fs.js';
 
 export class Config {
   constructor(public pojo: Record<string, any>) {}

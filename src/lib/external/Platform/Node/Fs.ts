@@ -2,15 +2,15 @@ import node_fs from 'node:fs/promises';
 import node_path from 'node:path';
 
 export async function DeleteFile(path: string) {
-  await node_fs.rm(path, { force: true });
+  await node_fs.unlink(path);
 }
 
 export async function ReadFile(path: string) {
   return await node_fs.readFile(path, { encoding: 'utf8' });
 }
 
-export async function WriteFile(path: string, string: string) {
-  await node_fs.writeFile(path, string, { encoding: 'utf8' });
+export async function WriteFile(path: string, text: string) {
+  await node_fs.writeFile(path, text, { encoding: 'utf8' });
 }
 
 export async function CreateDirectory(path: string, isFile = false) {

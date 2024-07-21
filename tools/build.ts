@@ -1,6 +1,6 @@
-import { IterateLSD, LSD, PathKind } from './lib/Cxx/LSD.mts';
-import { Run } from './lib/Node/Process.mts';
-import { ProcessTemplateFile, RegisterIncludeSource } from './lib/Web/Template Processor.mts';
+import { IterateLSD, LSD, PathKind } from '../src/lib/external/Platform/Cxx/LSD.js';
+import { Run } from '../src/lib/external/Platform/Node/Process.js';
+import { ProcessTemplateFile, RegisterIncludeSource } from '../src/lib/external/Platform/Web/Template Processor.js';
 
 const links: string[] = [];
 await IterateLSD(LSD({ path: './src', filter: '*.user.js' }), PathKind.File, ({ path }) => {
