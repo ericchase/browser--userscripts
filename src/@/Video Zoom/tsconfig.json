@@ -12,19 +12,6 @@
     // Best practices
     "strict": true,
     "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-
-    // Out
-    "declaration": true,
-    "outDir": "compiled-js",
-    "rootDir": "./src"
-  },
-  "exclude": ["*.config.ts"],
-  "include": ["./src"],
-  "watchOptions": {
-    "watchDirectory": "useFsEvents",
-    "watchFile": "useFsEvents",
-    "fallbackPolling": "dynamicPriority",
-    "synchronousWatchDirectory": true
+    "noFallthroughCasesInSwitch": true
   }
 }

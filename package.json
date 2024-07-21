@@ -1,12 +1,14 @@
 {
+  "type": "module",
   "scripts": {
-    "build": "bun ./automation-scripts/generate-links.mts",
-    "dev": "tsc --watch",
+    "build": "bun run ./tools/build.ts",
+    "dev": "bun run ./tools/watch-build.ts",
     "format-debug": "prettier . --debug-check",
     "format": "prettier . --write"
   },
-  "dependencies": {
-    "prettier": "^3.3.2",
-    "typescript": "^5.4.5"
+  "devDependencies": {
+    "@types/bun": "^1.1.6",
+    "@types/node": "^20.14.9",
+    "prettier": "^3.3.2"
   }
 }
