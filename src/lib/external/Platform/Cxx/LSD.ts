@@ -8,7 +8,11 @@ export interface LSDParams {
   filter?: string;
   options?: ObjectEncodingOptions & ExecFileOptions;
 }
-export function LSD({ path = '.', filter = '', options = {} }: LSDParams) {
+export function LSD({
+  path = '.', //
+  filter = '',
+  options = {},
+}: LSDParams) {
   const program = 'lsd';
   const args = [path];
   if (filter) args.push(filter);
@@ -28,7 +32,11 @@ export interface LSDResult {
   kind: PathKind;
   path: string;
 }
-export async function IterateLSD(command: Promise<STDIO>, filterkind: PathKind = PathKind.Directory | PathKind.File, callback?: (result: LSDResult) => void) {
+export async function IterateLSD(
+  command: Promise<STDIO>, //
+  filterkind: PathKind = PathKind.Directory | PathKind.File,
+  callback?: (result: LSDResult) => void,
+) {
   const { stdout = '', stderr } = await command;
   if (stderr) console.log('LSD Error:', stderr);
   const results = stdout
@@ -53,7 +61,9 @@ interface GetDirectoryListingOptions {
   exclude?: string[];
   ignore_paths?: string[];
 }
-export async function FilterDirectoryListing(options: GetDirectoryListingOptions) {
+export async function FilterDirectoryListing(
+  options: GetDirectoryListingOptions, //
+) {
   const directories: string[] = [];
   const files: string[] = [];
   for (const entry of (await LSD({ path: options.path })).stdout?.split('\n') ?? []) {
@@ -74,7 +84,10 @@ export async function FilterDirectoryListing(options: GetDirectoryListingOptions
   }
   return { directories, files };
 }
-export async function FilterDirectoryTree(options: GetDirectoryListingOptions) {
+
+export async function FilterDirectoryTree(
+  options: GetDirectoryListingOptions, //
+) {
   const directories: string[] = [options.path];
   const files: string[] = [];
   for (let i = 0; i < directories.length; i++) {

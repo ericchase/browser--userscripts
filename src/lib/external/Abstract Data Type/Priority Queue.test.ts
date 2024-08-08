@@ -11,7 +11,11 @@ function queueToArray<T>(queue: IPriorityQueue<T>) {
   return items;
 }
 
-function buildBasicTests(Queue: new () => IPriorityQueue<number>, count: number, expectedMapper: (expected: number[]) => number[] = (expected) => expected) {
+function buildBasicTests(
+  Queue: new () => IPriorityQueue<number>, //
+  count: number,
+  expectedMapper: (expected: number[]) => number[] = (expected) => expected,
+) {
   const queue = new Queue();
   const numbers: number[] = [...new Array(count).keys()];
   const expected = expectedMapper([...numbers]);
@@ -136,9 +140,7 @@ describe('MaxPriorityQueue', () => {
 });
 
 function buildComplexTests(
-  Queue: new (
-    isOrdered: (a: { v: number }, b: { v: number }) => boolean, //
-  ) => IPriorityQueue<{ v: number }>,
+  Queue: new (isOrdered: (a: { v: number }, b: { v: number }) => boolean) => IPriorityQueue<{ v: number }>, //
   isOrdered: (a: { v: number }, b: { v: number }) => boolean,
   count: number,
   expectedMapper: (expected: { v: number }[]) => { v: number }[] = (expected) => expected,

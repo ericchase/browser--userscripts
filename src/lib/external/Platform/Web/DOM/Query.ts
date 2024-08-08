@@ -1,6 +1,8 @@
 // private members for module level mapping
 const tagNameToElementReferenceMap: Map<string, Function> = new Map();
-export function GetElementReference<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap>(tagName: K) {
+export function GetElementReference<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap>(
+  tagName: K, //
+) {
   const ref = tagNameToElementReferenceMap.get(tagName) || document.createElement(tagName).constructor;
   if (!tagNameToElementReferenceMap.has(tagName)) {
     tagNameToElementReferenceMap.set(tagName, ref);
@@ -11,11 +13,7 @@ export function GetElementReference<K extends keyof HTMLElementTagNameMap | keyo
 /** Performs `querySelector` on `root` and typechecks the returned `HTMLElement` or `SVGElement` against `tagName`. Throws if no matching element. */
 export function $<K extends keyof HTMLElementTagNameMap, V extends HTMLElementTagNameMap[K]>(tagName: K, selector: string, root?: { querySelector: Function }): V;
 export function $<K extends keyof SVGElementTagNameMap, V extends SVGElementTagNameMap[K]>(tagName: K, selector: string, root?: { querySelector: Function }): V;
-export function $<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap, V extends (HTMLElementTagNameMap & SVGElementTagNameMap)[K]>(
-  tagName: K, //
-  selector: string,
-  root?: { querySelector: Function },
-): V;
+export function $<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap, V extends (HTMLElementTagNameMap & SVGElementTagNameMap)[K]>(tagName: K, selector: string, root?: { querySelector: Function }): V;
 export function $<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap>(
   tagName: K, //
   selector: string,
@@ -31,11 +29,7 @@ export function $<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNam
 /** Performs `querySelectorAll` on `root` and typechecks the returned `HTMLElement`s or `SVGElement`s against `tagName`. Throws if any returned element doesn't match. */
 export function $$<K extends keyof HTMLElementTagNameMap, V extends HTMLElementTagNameMap[K]>(tagName: K, selector: string, root?: { querySelectorAll: Function }): V[];
 export function $$<K extends keyof SVGElementTagNameMap, V extends SVGElementTagNameMap[K]>(tagName: K, selector: string, root?: { querySelectorAll: Function }): V[];
-export function $$<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap, V extends (HTMLElementTagNameMap & SVGElementTagNameMap)[K]>(
-  tagName: K, //
-  selector: string,
-  root?: { querySelectorAll: Function },
-): V[];
+export function $$<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap, V extends (HTMLElementTagNameMap & SVGElementTagNameMap)[K]>(tagName: K, selector: string, root?: { querySelectorAll: Function }): V[];
 export function $$<K extends keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap>(
   tagName: K, //
   selector: string,

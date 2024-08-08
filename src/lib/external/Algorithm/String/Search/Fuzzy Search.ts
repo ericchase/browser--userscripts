@@ -22,7 +22,11 @@ export class FuzzyMatcher {
     if (this.mapInputToTargetToDistance.has(input)) {
       const mapTargetToDistance = this.mapInputToTargetToDistance.get(input)!;
       if (!mapTargetToDistance.has(target)) {
-        mapTargetToDistance.set(target, levenshtein_distance(input, target));
+        if (input.length <= target.length) {
+          mapTargetToDistance.set(target, target.startsWith(input) ? 0 : levenshtein_distance(input, target));
+        } else {
+          mapTargetToDistance.set(target, input.startsWith(target) ? 0 : levenshtein_distance(target, input));
+        }
       }
     } else {
       this.mapInputToTargetToDistance.set(input, new Map<string, number>([[target, levenshtein_distance(input, target)]]));
@@ -88,11 +92,12 @@ export class FuzzyMatcher {
       }
     }
 
-    Array.from(targetWordSet)
+    Array.from(targetWordSet) //
       .flatMap((targetWord) => this.searchList(inputTextList, targetWord, tolerance))
       .forEach(addToMatchResultMap);
 
-    return Array.from(indexToMatchResultMap.values()).sort((a, b) => b.count / b.distance - a.count / a.distance || b.count - a.count || a.inputIndex - b.inputIndex);
+    return Array.from(indexToMatchResultMap.values()) //
+      .sort((a, b) => b.count / b.distance - a.count / a.distance || b.count - a.count || a.inputIndex - b.inputIndex);
   }
 }
 
@@ -118,3 +123,36 @@ export class TextProcessor {
     return input;
   }
 }
+
+// const candidates = ['Shortcuts Manual', 'Back', 'Forward', 'Reload Tab', 'Hard Reload Tab', 'Next Page', 'Previous Page', 'Remove URL Params', 'Go Up', 'Go To Root', 'Focus Text Input', 'Focus Media Player', 'Blur Element', 'Copy URL', 'Copy Title', 'Copy Title and URL', 'Web Search for Selected Text', 'Scroll Down', 'Scroll Up', 'Scroll Left', 'Scroll Right', 'Scroll Page Down', 'Scroll Page Up', 'Scroll Half Page Down', 'Scroll Half Page Up', 'Scroll To Top', 'Scroll To Bottom', 'Zoom In', 'Zoom Out', 'Zoom Reset', 'Toggle Full Screen', 'New Tab', 'New Tab to the Right', 'New Window', 'New Incognito Window', 'Close Tab', 'Close Window', 'Restore Tab', 'Duplicate Tab', 'Pin/Unpin Tab', 'Group/Ungroup Tab'];
+// const query = 'tab n';
+
+// const textProcessor = new TextProcessor([
+//   (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, ''), //
+//   (s) => s.toLocaleLowerCase(),
+// ]);
+// const fuzzyMatcher = new FuzzyMatcher();
+// const heatMap = new Map<string, { hits: number; distance: number; score: number }>();
+// for (const targetWord of query.split(' ')) {
+//   const results = fuzzyMatcher.searchList(textProcessor.run(candidates), textProcessor.run(targetWord), 2);
+//   for (const { distance, inputIndex } of results) {
+//     const cached = heatMap.get(candidates[inputIndex]) ?? { hits: 0, distance: 0, score: 0 };
+//     cached.hits += 1;
+//     cached.distance += distance;
+//     cached.score = cached.hits > cached.distance ? cached.hits : cached.hits / cached.distance;
+//     heatMap.set(candidates[inputIndex], cached);
+//   }
+// }
+
+// // sort and print results
+// for (const result of [...heatMap.entries()].sort((a, b) => {
+//   return b[1].score - a[1].score;
+//   // if (a.distance < a.hits) {
+//   // }
+//   // if (a.distance === b.distance) {
+//   //   return b[1][0] - a[1][0];
+//   // }
+//   // return b[1][1] - a[1][1];
+// })) {
+//   console.log(...result);
+// }

@@ -22,9 +22,13 @@ export class Store<Value> {
   }
   set(value: Value) {
     console.log('store, set', value);
-    this.currentValue = value;
-    for (const callback of this.subscriptionSet) {
-      callback(value);
+    // If subscriptions should only be triggered once per
+    // actual value change, keep this if statement.
+    if (this.currentValue !== value) {
+      this.currentValue = value;
+      for (const callback of this.subscriptionSet) {
+        callback(value);
+      }
     }
   }
   update(callback: UpdateCallback<Value>) {
