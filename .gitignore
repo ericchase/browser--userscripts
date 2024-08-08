@@ -1,29 +1,32 @@
 # Logs
-**/logs/*
 *.log
+**/logs/*
+lerna-debug.log*
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-**/node_modules/*
-**/dist/*
-**/dist-ssr/*
 *.local
+**/dist-ssr/*
+**/dist/*
+**/node_modules/*
 
 # Editor directories and files
-**/.vscode/*
-**/.idea/*
 .DS_Store
-*.suo
-*.ntvs*
 *.njsproj
+*.ntvs*
+*.suo
 *.sw?
+**/.idea/*
+**/.vscode/*
 
 # Other
 *.env
 *.exe
+*.mkv
+*.mp4
 **/build/*
 **/debug/*
 **/src-tauri/target
+sync.ffs_db
