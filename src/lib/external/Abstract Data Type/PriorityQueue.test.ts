@@ -1,5 +1,5 @@
 import { nChooseRPermutations } from '../Algorithm/Math/Combinatorics.js';
-import { MaxPriorityQueue, MinPriorityQueue, type IPriorityQueue } from './Priority Queue.js';
+import { MaxPriorityQueue, MinPriorityQueue, type IPriorityQueue } from './PriorityQueue.js';
 
 import { describe, expect, test } from 'bun:test';
 
