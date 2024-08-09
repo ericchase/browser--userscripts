@@ -1,3 +1,4 @@
+// ! can be replaced with Bun.Glob
 export function GlobSearch(text: string, query: string) {
   const parts = query.split('*');
   // check start

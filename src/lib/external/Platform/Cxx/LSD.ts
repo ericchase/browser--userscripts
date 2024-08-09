@@ -1,6 +1,6 @@
 import node_child_process, { type ExecFileOptions } from 'node:child_process';
 import type { ObjectEncodingOptions } from 'node:fs';
-import { GlobSearch } from '../../Algorithm/Search/Glob Search.js';
+import { GlobSearch } from '../../Algorithm/String/Search/Glob Search.js';
 import type { STDIO } from '../Node/Process.js';
 
 export interface LSDParams {
