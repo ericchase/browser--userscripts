@@ -2,54 +2,57 @@ import { FilterDirectoryListing } from '../src/lib/external/Platform/Cxx/LSD.js'
 import { Run } from '../src/lib/external/Platform/Node/Process.js';
 import { ProcessTemplateFile, RegisterIncludeSource } from '../src/lib/external/Platform/Web/Template Processor.js';
 
-const src = {
+const I = {
   dir: './src',
   ext: '.user.ts',
 };
-const dest = {
-  dir: './src',
+const O = {
+  dir: './release',
   ext: '.user.js',
 };
 
 // Bundle Source
 {
+  const HEADER_START = 'const header = `';
+  const HEADER_END = '`;';
+  function extractHeaderComment(source: string) {
+    const beg = source.indexOf(HEADER_START);
+    if (beg === -1) return '';
+    const end = source.indexOf(HEADER_END, beg);
+    if (end === -1) return '';
+    return source.slice(beg + HEADER_START.length, end) + '\n';
+  }
+
   const { files } = await FilterDirectoryListing({
-    path: src.dir,
-    include: ['*' + src.ext],
+    path: I.dir,
+    include: ['*' + I.ext],
   });
   for (const name of files) {
-    const path = src.dir + '/' + name;
-    const out_path = src.dir + '/' + name.slice(0, name.lastIndexOf(src.ext)) + dest.ext;
-    const source = await Bun.file(path).text();
+    const input_path = I.dir + '/' + name;
+    const output_path = O.dir + '/' + name.slice(0, name.lastIndexOf(I.ext)) + O.ext;
+    const source = await Bun.file(input_path).text();
     const header = extractHeaderComment(source);
+    // console.log(header);
 
     const { outputs, success } = await Bun.build({
-      entrypoints: [path],
+      entrypoints: [input_path],
       target: 'browser',
     });
     if (success) {
-      Bun.write(out_path, new Blob([header, '\n', outputs[0]], { type: outputs[0].type }));
+      Bun.write(output_path, new Blob([header, outputs[0]], { type: outputs[0].type }));
     }
   }
-}
-
-function extractHeaderComment(code: string) {
-  const HEADER_START = 'const header = `';
-  const HEADER_END = '`;';
-  const beg = code.indexOf(HEADER_START);
-  const end = code.indexOf(HEADER_END);
-  return code.slice(beg + HEADER_START.length, end);
 }
 
 // Build Links
 {
   const { files } = await FilterDirectoryListing({
-    path: dest.dir,
-    include: ['*' + dest.ext],
+    path: O.dir,
+    include: ['*' + O.ext],
   });
   const links: string[] = [];
   for (const name of files) {
-    links.push(`<a href="${dest.dir}/${name}" target="_blank">${name}</a>`);
+    links.push(`<a href="${O.dir}/${name}" target="_blank">${name}</a>`);
   }
   RegisterIncludeSource('links', links.join('\n'));
   await ProcessTemplateFile('./index.template.html', './index.html');

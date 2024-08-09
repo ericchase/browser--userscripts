@@ -2,6 +2,7 @@
   "type": "module",
   "scripts": {
     "build": "bun run ./tools/build.ts",
+    "dev": "bun run ./tools/dev.ts",
     "format-debug": "prettier . --debug-check",
     "format": "prettier . --write"
   },

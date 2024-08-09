@@ -1,3 +1,4 @@
+//! use Bun.HTMLRewriter instead
 import * as Parser from 'node-html-parser';
 import node_fs from 'node:fs/promises';
 
