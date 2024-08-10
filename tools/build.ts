@@ -2,6 +2,8 @@ import { FilterDirectoryListing } from '../src/lib/external/Platform/Cxx/LSD.js'
 import { Run } from '../src/lib/external/Platform/Node/Process.js';
 import { ProcessTemplateFile, RegisterIncludeSource } from '../src/lib/external/Platform/Web/TemplateProcessor.js';
 
+await Run({ program: 'bun', args: ['run', 'format'] });
+
 const I = {
   dir: './src',
   ext: '.user.ts',
