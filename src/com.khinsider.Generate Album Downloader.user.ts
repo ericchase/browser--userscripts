@@ -5,7 +5,7 @@ const header = `
 // @namespace   ericchase
 // @match       *://downloads.khinsider.com/game-soundtracks/album/*
 // @version     1.0.0
-// @description 12/20/2023, 9:22:10 AM
+// @description 2023/12/20, 9:22:10 AM
 // @run-at      document-start
 // @grant       none
 // @homepageURL https://github.com/ericchase/browser--userscripts
@@ -15,7 +15,8 @@ const header = `
 import { Sleep } from './lib/external/Algorithm/Sleep.js';
 import { JobQueue } from './lib/external/Data Structure/JobQueue.js';
 import { SaveText } from './lib/external/Platform/Web/AnchorDownloader.js';
-import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver.js';
+import { $$ } from './lib/external/Platform/Web/DOM/Element/QuerySelectorAll.js';
+import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAddedObserver.js';
 import { OpenWindow } from './lib/external/Platform/Web/WindowProxy.js';
 
 type TrackDetails = { albumName: string; trackName: string; uris: string[] };
@@ -38,7 +39,7 @@ async function main() {
     selector: 'table#songlist',
   }).subscribe((tableSonglist) => {
     if (tableSonglist instanceof HTMLTableElement) {
-      for (const anchorSong of tableSonglist.querySelectorAll('.playlistDownloadSong > a')) {
+      for (const anchorSong of $$('a', '.playlistDownloadSong > a', tableSonglist)) {
         if (anchorSong instanceof HTMLAnchorElement) {
           jobQueue.add(() => getSongUris(anchorSong));
         }

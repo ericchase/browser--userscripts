@@ -1,13 +1,13 @@
 export function CloneElement<T extends HTMLElement | SVGElement>(
-  element: T,
+  source: T,
   deep = false,
   error = (element: T) => {
     `Failed to clone element. ${element}`;
   },
 ) {
-  const clone = element.cloneNode(deep);
-  if (clone instanceof element.constructor) {
-    return clone as typeof element;
+  const clone = source.cloneNode(deep);
+  if (clone instanceof source.constructor) {
+    return clone as typeof source;
   }
-  throw error(element);
+  throw error(source);
 }

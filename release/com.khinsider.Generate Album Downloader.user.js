@@ -4,15 +4,15 @@
 // @namespace   ericchase
 // @match       *://downloads.khinsider.com/game-soundtracks/album/*
 // @version     1.0.0
-// @description 12/20/2023, 9:22:10 AM
+// @description 2023/12/20, 9:22:10 AM
 // @run-at      document-start
 // @grant       none
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
 // src/lib/external/Algorithm/Sleep.ts
-function Sleep(ms) {
-  return new Promise((resolve) => setTimeout(() => resolve(), ms));
+async function Sleep(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // src/lib/external/Data Structure/JobQueue.ts
@@ -86,7 +86,32 @@ function SaveText(text, filename) {
   SaveBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), filename);
 }
 
-// src/lib/external/Platform/Web/DOM/MutationObserver.ts
+// src/lib/external/Platform/Web/DOM/Element/_elementReferenceMap.ts
+function GetElementReference(tagName) {
+  const ref = tagNameToElementReferenceMap.get(tagName) || document.createElement(tagName).constructor;
+  if (!tagNameToElementReferenceMap.has(tagName)) {
+    tagNameToElementReferenceMap.set(tagName, ref);
+  }
+  return ref;
+}
+var tagNameToElementReferenceMap = new Map();
+
+// src/lib/external/Platform/Web/DOM/Element/QuerySelectorAll.ts
+function $$(tagName, selector, source = document.documentElement, includeSourceInMatch = false) {
+  const elements = [];
+  if (includeSourceInMatch === true && source instanceof GetElementReference(tagName) && source.matches(selector)) {
+    elements.push(source);
+  }
+  elements.push(...source.querySelectorAll(selector));
+  for (const element of elements) {
+    if (!(element instanceof GetElementReference(tagName))) {
+      throw `Query: \`${selector}\`. Element not of type: \`${tagName}\`. ${element}`;
+    }
+  }
+  return elements;
+}
+
+// src/lib/external/Platform/Web/DOM/MutationObserver/ElementAddedObserver.ts
 class ElementAddedObserver {
   constructor({ source, options = { subtree: true }, selector, includeExistingElements = true }) {
     this.mutationObserver = new MutationObserver((mutationRecords) => {
@@ -157,34 +182,6 @@ class ElementAddedObserver {
   }
 }
 
-class AttributeObserver {
-  constructor({ source, options = { attributeOldValue: true, subtree: true } }) {
-    this.mutationObserver = new MutationObserver((mutationRecords) => {
-      for (const record of mutationRecords) {
-        if (record.type === 'attributes') {
-          this.send(record.target, record.attributeName, record.oldValue);
-        }
-      }
-    });
-    this.mutationObserver.observe(source, { attributes: true, attributeFilter: options.attributeFilter, attributeOldValue: options.attributeOldValue ?? true, subtree: options.subtree ?? true });
-  }
-  subscribe(callback) {
-    this.subscriptionSet.add(callback);
-    return () => {
-      this.subscriptionSet.delete(callback);
-    };
-  }
-  mutationObserver;
-  subscriptionSet = new Set();
-  send(element, attributeName, oldValue) {
-    for (const callback of this.subscriptionSet) {
-      if (callback({ element, attributeName, oldValue: oldValue ?? undefined })?.abort === true) {
-        this.subscriptionSet.delete(callback);
-      }
-    }
-  }
-}
-
 // src/lib/external/Platform/Web/WindowProxy.ts
 function OpenWindow(url, onLoad, onUnload) {
   const proxy = window.open(url, '_blank');
@@ -220,7 +217,7 @@ async function main() {
     selector: 'table#songlist',
   }).subscribe((tableSonglist) => {
     if (tableSonglist instanceof HTMLTableElement) {
-      for (const anchorSong of tableSonglist.querySelectorAll('.playlistDownloadSong > a')) {
+      for (const anchorSong of $$('a', '.playlistDownloadSong > a', tableSonglist)) {
         if (anchorSong instanceof HTMLAnchorElement) {
           jobQueue.add(() => getSongUris(anchorSong));
         }

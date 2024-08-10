@@ -32,7 +32,6 @@ const O = {
     const output_path = O.dir + '/' + name.slice(0, name.lastIndexOf(I.ext)) + O.ext;
     const source = await Bun.file(input_path).text();
     const header = extractHeaderComment(source);
-    // console.log(header);
 
     const { outputs, success } = await Bun.build({
       entrypoints: [input_path],
