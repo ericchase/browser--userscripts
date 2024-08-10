@@ -228,7 +228,7 @@ async function main() {
     }
   });
 }
-var getSongUris = function (anchorSong) {
+function getSongUris(anchorSong) {
   return new Promise((resolve, reject) => {
     OpenWindow(anchorSong.href, async (proxy) => {
       try {
@@ -273,8 +273,8 @@ var getSongUris = function (anchorSong) {
       }
     });
   });
-};
-var generateDownloaderScript = function (trackList) {
+}
+function generateDownloaderScript(trackList) {
   const albumMap = new Map();
   for (const details of trackList) {
     if (!albumMap.has(details.albumName)) {
@@ -319,5 +319,5 @@ for (const { trackName, uris } of trackList) {
       'download_' + albumName + '.ts',
     );
   }
-};
+}
 main();
