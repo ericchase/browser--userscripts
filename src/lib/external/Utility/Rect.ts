@@ -24,10 +24,10 @@ export class Rect implements RectReadOnly {
 
   static fromRect(rect: RectInit) {
     const r = new Rect();
-    r.x = rect.x ?? 0;
-    r.y = rect.y ?? 0;
-    r.width = rect.width ?? 0;
-    r.height = rect.height ?? 0;
+    r.x1 = rect.x ?? 0;
+    r.y1 = rect.y ?? 0;
+    r.x2 = r.x1 + (rect.width ?? 0);
+    r.y2 = r.y1 + (rect.height ?? 0);
     return r;
   }
 
