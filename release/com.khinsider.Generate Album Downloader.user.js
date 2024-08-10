@@ -15,61 +15,6 @@ async function Sleep(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// src/lib/external/Data Structure/JobQueue.ts
-class JobQueue {
-  delay_ms;
-  constructor(delay_ms) {
-    this.delay_ms = delay_ms;
-  }
-  add(fn) {
-    this.queue.push(fn);
-    if (this.running === false) {
-      this.running = true;
-      this.run();
-    }
-  }
-  get done() {
-    return this.completionCount === this.queue.length ? true : false;
-  }
-  subscribe(callback) {
-    this.subscriptionSet.add(callback);
-    for (const result of this.results) {
-      if (callback(result.value, result.error)?.abort === true) {
-        this.subscriptionSet.delete(callback);
-        return () => {};
-      }
-    }
-    return () => {
-      this.subscriptionSet.delete(callback);
-    };
-  }
-  queue = [];
-  queueIndex = 0;
-  completionCount = 0;
-  results = [];
-  running = false;
-  subscriptionSet = new Set();
-  run() {
-    if (this.queueIndex < this.queue.length) {
-      this.queue[this.queueIndex++]()
-        .then((value) => this.send({ value }))
-        .catch((error) => this.send({ error }));
-      setTimeout(() => this.run(), this.delay_ms);
-    } else {
-      this.running = false;
-    }
-  }
-  send(result) {
-    this.completionCount++;
-    this.results.push(result);
-    for (const callback of this.subscriptionSet) {
-      if (callback(result.value, result.error)?.abort === true) {
-        this.subscriptionSet.delete(callback);
-      }
-    }
-  }
-}
-
 // src/lib/external/Platform/Web/AnchorDownloader.ts
 function anchor_downloader(data, filename) {
   const a = document.createElement('a');
@@ -195,6 +140,61 @@ function OpenWindow(url, onLoad, onUnload) {
       proxy.addEventListener('unload', (event) => {
         onUnload(proxy, event);
       });
+    }
+  }
+}
+
+// src/lib/external/Utility/JobQueue.ts
+class JobQueue {
+  delay_ms;
+  constructor(delay_ms) {
+    this.delay_ms = delay_ms;
+  }
+  add(fn) {
+    this.queue.push(fn);
+    if (this.running === false) {
+      this.running = true;
+      this.run();
+    }
+  }
+  get done() {
+    return this.completionCount === this.queue.length ? true : false;
+  }
+  subscribe(callback) {
+    this.subscriptionSet.add(callback);
+    for (const result of this.results) {
+      if (callback(result.value, result.error)?.abort === true) {
+        this.subscriptionSet.delete(callback);
+        return () => {};
+      }
+    }
+    return () => {
+      this.subscriptionSet.delete(callback);
+    };
+  }
+  queue = [];
+  queueIndex = 0;
+  completionCount = 0;
+  results = [];
+  running = false;
+  subscriptionSet = new Set();
+  run() {
+    if (this.queueIndex < this.queue.length) {
+      this.queue[this.queueIndex++]()
+        .then((value) => this.send({ value }))
+        .catch((error) => this.send({ error }));
+      setTimeout(() => this.run(), this.delay_ms);
+    } else {
+      this.running = false;
+    }
+  }
+  send(result) {
+    this.completionCount++;
+    this.results.push(result);
+    for (const callback of this.subscriptionSet) {
+      if (callback(result.value, result.error)?.abort === true) {
+        this.subscriptionSet.delete(callback);
+      }
     }
   }
 }

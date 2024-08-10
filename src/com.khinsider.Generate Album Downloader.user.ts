@@ -13,11 +13,11 @@ const header = `
 `;
 
 import { Sleep } from './lib/external/Algorithm/Sleep.js';
-import { JobQueue } from './lib/external/Data Structure/JobQueue.js';
 import { SaveText } from './lib/external/Platform/Web/AnchorDownloader.js';
 import { $$ } from './lib/external/Platform/Web/DOM/Element/QuerySelectorAll.js';
 import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAddedObserver.js';
 import { OpenWindow } from './lib/external/Platform/Web/WindowProxy.js';
+import { JobQueue } from './lib/external/Utility/JobQueue.js';
 
 type TrackDetails = { albumName: string; trackName: string; uris: string[] };
 
