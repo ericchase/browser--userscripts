@@ -15,6 +15,13 @@
 // https://github.com/ericchase/browser--userscripts
 // https://www.apache.org/licenses/LICENSE-2.0
 
+// src/@/Video Zoom/src/lib/Event.ts
+function ConsumeEvent(e) {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  e.stopPropagation();
+}
+
 // src/lib/external/Platform/Web/CSS/Size.ts
 function ToAdjustedEm(em, root = document.documentElement) {
   const fontSizePx = Number.parseInt(getComputedStyle(root).fontSize);
@@ -25,9 +32,19 @@ function ToRelativeEm(em, root = document.documentElement) {
   return (fontSizePx / 16) * em;
 }
 
-// src/lib/external/Platform/Web/DOM/MutationObserver/ElementAddedObserver.ts
+// src/lib/external/Platform/Web/DOM/Element/Visibility.ts
+function IsVisible(element) {
+  const styles = window.getComputedStyle(element);
+  if (styles.display === 'none') return false;
+  if (styles.visibility === 'hidden' || styles.visibility === 'collapse') return false;
+  const { width, height } = element.getBoundingClientRect();
+  if (width <= 0 || height <= 0) return false;
+  return true;
+}
+
+// src/lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.ts
 class ElementAddedObserver {
-  constructor({ source, options = { subtree: true }, selector, includeExistingElements = true }) {
+  constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }) {
     this.mutationObserver = new MutationObserver((mutationRecords) => {
       for (const record of mutationRecords) {
         if (record.type === 'childList') {
@@ -104,10 +121,10 @@ class Rect {
   y2 = 0;
   static fromRect(rect) {
     const r = new Rect();
-    r.x = rect.x ?? 0;
-    r.y = rect.y ?? 0;
-    r.width = rect.width ?? 0;
-    r.height = rect.height ?? 0;
+    r.x1 = rect.x ?? 0;
+    r.y1 = rect.y ?? 0;
+    r.x2 = r.x1 + (rect.width ?? 0);
+    r.y2 = r.y1 + (rect.height ?? 0);
     return r;
   }
   toRectReadOnly() {
@@ -255,34 +272,21 @@ class RegionHighlighter {
 }
 
 // src/@.Video Zoom.user.ts
-function PollForElement(query, ms) {
-  return new Promise((resolve) => {
-    (function search() {
-      for (const el of document.querySelectorAll(query)) {
-        if (el instanceof HTMLElement && el.style.display !== 'none') {
-          return resolve(el);
-        }
-      }
-      setTimeout(search, ms);
-    })();
-  });
-}
-function GetVideo() {
+async function main() {
   for (const toggle of Object.values(mouseHandlers)) {
     toggle(false);
   }
-  Promise.all([PollForElement('video', 250)]).then(([elem]) => {
-    if (elem instanceof HTMLVideoElement && elem.isConnected && elem.style.display !== 'none') {
+  const videoObserver = new ElementAddedObserver({
+    selector: 'video',
+  });
+  videoObserver.subscribe((element) => {
+    if (element instanceof HTMLVideoElement && element.isConnected && IsVisible(element)) {
       Log('Setup VideoHandler');
-      videoHandler = new VideoHandler(elem);
+      videoHandler = new VideoHandler(element);
       mouseHandlers.HandleMouse_Begin(true);
+      return { abort: true };
     }
   });
-}
-function ConsumeEvent(e) {
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  e.stopPropagation();
 }
 function IsLeftClick(e) {
   return e.button === 0;
@@ -297,73 +301,78 @@ function Toggler(onEnable, onDisable) {
 }
 function HandleMouse_Begin(evt) {
   Log('HandleMouse_Begin');
-  if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
-    if (evt.ctrlKey || evt.altKey) {
-      ConsumeEvent(evt);
-    }
-    oldClientX = evt.clientX;
-    oldClientY = evt.clientY;
-    mouseHandlers.HandleMouse_End(true);
-    mouseHandlers.HandleMouse_Move(true);
-    if (!videoHandler.isZoomed) {
-      videoHandler.region.attach(videoHandler.element);
-      const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
-      console.log();
-      console.log('absolute coord:', evt.clientX, evt.clientY);
-      console.log('relative coord:', x, y);
-      console.log('video element:', videoHandler.element, 'region element:', videoHandler.region.element);
-      console.log();
-      videoHandler.region.rect.x1 = videoHandler.region.rect.x2 = x;
-      videoHandler.region.rect.y1 = videoHandler.region.rect.y2 = y;
+  if (evt instanceof MouseEvent) {
+    if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
+      if (evt.ctrlKey || evt.altKey) {
+        ConsumeEvent(evt);
+      }
+      oldClientX = evt.clientX;
+      oldClientY = evt.clientY;
+      mouseHandlers.HandleMouse_End(true);
+      mouseHandlers.HandleMouse_Move(true);
+      if (!videoHandler.isZoomed) {
+        videoHandler.region.attach(videoHandler.element);
+        const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
+        videoHandler.region.rect.x1 = videoHandler.region.rect.x2 = x;
+        videoHandler.region.rect.y1 = videoHandler.region.rect.y2 = y;
+      }
     }
   }
 }
 function HandleMouse_Move(evt) {
   Log('HandleMouse_Move');
-  if (videoHandler.isZoomed) {
-    if (oldClientX !== evt.clientX || oldClientY !== evt.clientY) {
-      consumeNextClick = true;
-      videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
-      oldClientX = evt.clientX;
-      oldClientY = evt.clientY;
+  if (evt instanceof MouseEvent) {
+    if (videoHandler.isZoomed) {
+      if (oldClientX !== evt.clientX || oldClientY !== evt.clientY) {
+        consumeNextClick = true;
+        videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
+        oldClientX = evt.clientX;
+        oldClientY = evt.clientY;
+      }
+    } else {
+      const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
+      videoHandler.region.rect.x2 = x;
+      videoHandler.region.rect.y2 = y;
+      videoHandler.region.draw();
     }
-  } else {
-    const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
-    videoHandler.region.rect.x2 = x;
-    videoHandler.region.rect.y2 = y;
-    videoHandler.region.draw();
   }
 }
 function HandleMouse_End(evt) {
   Log('HandleMouse_End');
-  mouseHandlers.HandleMouse_End(false);
-  mouseHandlers.HandleMouse_Move(false);
-  const { width, height } = videoHandler.region.rect;
-  if (width > 15 && height > 15) {
-    ConsumeEvent(evt);
-    if (!videoHandler.isZoomed) {
-      mouseHandlers.HandleMouse_ResetZoom(true);
-      videoHandler.applyZoom();
-      consumeNextClick = true;
+  if (evt instanceof MouseEvent) {
+    mouseHandlers.HandleMouse_End(false);
+    mouseHandlers.HandleMouse_Move(false);
+    const { width, height } = videoHandler.region.rect;
+    if (width > 15 && height > 15) {
+      ConsumeEvent(evt);
+      if (!videoHandler.isZoomed) {
+        mouseHandlers.HandleMouse_ResetZoom(true);
+        videoHandler.applyZoom();
+        consumeNextClick = true;
+      }
     }
+    videoHandler.region.reset();
   }
-  videoHandler.region.reset();
 }
 function HandleClick(evt) {
   Log('HandleClick');
-  if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
-    if (consumeNextClick || evt.ctrlKey || evt.altKey) {
-      consumeNextClick = false;
-      ConsumeEvent(evt);
+  if (evt instanceof MouseEvent) {
+    if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
+      if (consumeNextClick || evt.ctrlKey || evt.altKey) {
+        consumeNextClick = false;
+        ConsumeEvent(evt);
+      }
     }
   }
 }
 function HandleMouse_ResetZoom(evt) {
   Log('HandleMouse_ResetZoom');
-  if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
-    ConsumeEvent(evt);
-    mouseHandlers.HandleMouse_ResetZoom(false);
-    videoHandler.resetZoom();
+  if (evt instanceof MouseEvent) {
+    if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
+      ConsumeEvent(evt);
+      mouseHandlers.HandleMouse_ResetZoom(false);
+      videoHandler.resetZoom();
+    }
   }
 }
 function Log(...args) {
@@ -391,7 +400,10 @@ class VideoHandler {
     return false;
   }
   getBoundingClientRect() {
-    return this.element ? Rect.fromRect(this.element.getBoundingClientRect()) : new Rect();
+    if (this.element) {
+      return Rect.fromRect(this.element.getBoundingClientRect());
+    }
+    return new Rect();
   }
   getRelativeCoords(x, y) {
     if (this.element) {
@@ -484,5 +496,5 @@ var videoHandler = new VideoHandler(undefined);
 var consumeNextClick = false;
 var oldClientX = 0;
 var oldClientY = 0;
-GetVideo();
 Log('Loaded');
+main();

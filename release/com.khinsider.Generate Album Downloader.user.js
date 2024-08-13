@@ -56,9 +56,9 @@ function $$(tagName, selector, source = document.documentElement, includeSourceI
   return elements;
 }
 
-// src/lib/external/Platform/Web/DOM/MutationObserver/ElementAddedObserver.ts
+// src/lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.ts
 class ElementAddedObserver {
-  constructor({ source, options = { subtree: true }, selector, includeExistingElements = true }) {
+  constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }) {
     this.mutationObserver = new MutationObserver((mutationRecords) => {
       for (const record of mutationRecords) {
         if (record.type === 'childList') {
@@ -127,7 +127,7 @@ class ElementAddedObserver {
   }
 }
 
-// src/lib/external/Platform/Web/WindowProxy.ts
+// src/lib/external/Platform/Web/Window/Open.ts
 function OpenWindow(url, onLoad, onUnload) {
   const proxy = window.open(url, '_blank');
   if (proxy) {
@@ -213,7 +213,6 @@ async function main() {
     }
   });
   new ElementAddedObserver({
-    source: document,
     selector: 'table#songlist',
   }).subscribe((tableSonglist) => {
     if (tableSonglist instanceof HTMLTableElement) {

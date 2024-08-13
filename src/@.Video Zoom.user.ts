@@ -17,23 +17,13 @@ const header = `
 // https://www.apache.org/licenses/LICENSE-2.0
 `;
 
-import { ToAdjustedEm, ToRelativeEm, ToRelativePx } from './lib/external/Platform/Web/CSS/Size.js';
-import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAddedObserver.js';
+import { ConsumeEvent } from './@/Video Zoom/src/lib/Event.js';
+import { ToAdjustedEm, ToRelativeEm } from './lib/external/Platform/Web/CSS/Size.js';
+import { IsVisible } from './lib/external/Platform/Web/DOM/Element/Visibility.js';
+import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.js';
+import { EventManager } from './lib/external/Platform/Web/Event/Manager.js';
 import { RegionHighlighter } from './lib/external/Platform/Web/RegionHighlighter.js';
 import { Rect } from './lib/external/Utility/Rect.js';
-
-function PollForElement(query: string, ms: number) {
-  return new Promise<HTMLElement>((resolve) => {
-    (function search() {
-      for (const el of document.querySelectorAll(query)) {
-        if (el instanceof HTMLElement && el.style.display !== 'none') {
-          return resolve(el);
-        }
-      }
-      setTimeout(search, ms);
-    })();
-  });
-}
 
 class VideoHandler {
   region: RegionHighlighter;
@@ -59,7 +49,10 @@ class VideoHandler {
   }
 
   getBoundingClientRect(this: VideoHandler): Rect {
-    return this.element ? Rect.fromRect(this.element.getBoundingClientRect()) : new Rect();
+    if (this.element) {
+      return Rect.fromRect(this.element.getBoundingClientRect());
+    }
+    return new Rect();
   }
 
   getRelativeCoords(this: VideoHandler, x: number, y: number) {
@@ -71,6 +64,7 @@ class VideoHandler {
     }
     return { x: x, y: y };
   }
+
   reset(this: VideoHandler) {
     Log('VideoHandler.Reset');
     this.resetZoom();
@@ -102,6 +96,7 @@ class VideoHandler {
       this.element.style.translate = `${this.zoomX}px ${this.zoomY}px`;
     }
   }
+
   moveZoom(this: VideoHandler, deltaX: number, deltaY: number) {
     if (this.element) {
       Log('VideoHandler.moveZoom');
@@ -110,6 +105,7 @@ class VideoHandler {
       this.element.style.translate = `${this.zoomX}px ${this.zoomY}px`;
     }
   }
+
   resetZoom(this: VideoHandler) {
     if (this.element) {
       Log('VideoHandler.resetZoom');
@@ -126,37 +122,22 @@ class VideoHandler {
 }
 
 async function main() {
-  const videoObserver = new ElementAddedObserver({
-    source: document,
-    selector: 'video',
-  });
-
-  videoObserver.subscribe((video) => {
-    if (video instanceof HTMLVideoElement) {
-      return { abort: true };
-    }
-  });
-}
-
-function GetVideo() {
-  // reset mouse handlers
   for (const toggle of Object.values(mouseHandlers)) {
     toggle(false);
   }
-  // look for video element
-  Promise.all([PollForElement('video', 250)]).then(([elem]) => {
-    if (elem instanceof HTMLVideoElement && elem.isConnected && elem.style.display !== 'none') {
+
+  const videoObserver = new ElementAddedObserver({
+    selector: 'video',
+  });
+
+  videoObserver.subscribe((element) => {
+    if (element instanceof HTMLVideoElement && element.isConnected && IsVisible(element)) {
       Log('Setup VideoHandler');
-      videoHandler = new VideoHandler(elem);
+      videoHandler = new VideoHandler(element);
       mouseHandlers.HandleMouse_Begin(true);
+      return { abort: true };
     }
   });
-}
-
-function ConsumeEvent(e: Event) {
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  e.stopPropagation();
 }
 
 function IsLeftClick(e: MouseEvent) {
@@ -172,9 +153,14 @@ function Toggler(onEnable: () => void, onDisable: () => void) {
   };
 }
 
+// EventManager.add({ types: ['adsf'], sources: [window, document.body], callbacks: (types, evt) => HandleMouse_Begin(evt), options: {} });
+// EventManager.add(['click'], [window], HandleClick);
+// console.log('Listener Map:', EventManager.listenerMap);
+
 const mouseHandlers = {
   HandleMouse_Begin: Toggler(
     () => {
+      // eventManager.on(['click', 'mousedown'], [window], () => ({ abort: true }), { bubble: true, capture: true });
       window.addEventListener('mousedown', HandleMouse_Begin);
       window.addEventListener('mousedown', HandleMouse_Begin, true);
       window.addEventListener('click', HandleClick);
@@ -212,83 +198,87 @@ let videoHandler = new VideoHandler(undefined);
 let consumeNextClick = false;
 let oldClientX = 0;
 let oldClientY = 0;
-function HandleMouse_Begin(evt: MouseEvent) {
+function HandleMouse_Begin(evt: Event) {
   Log('HandleMouse_Begin');
-  if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
-    if (evt.ctrlKey || evt.altKey) {
-      ConsumeEvent(evt);
-    }
-    oldClientX = evt.clientX;
-    oldClientY = evt.clientY;
-    mouseHandlers.HandleMouse_End(true);
-    mouseHandlers.HandleMouse_Move(true);
-    if (!videoHandler.isZoomed) {
-      videoHandler.region.attach(videoHandler.element);
-      const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
-      console.log();
-      console.log('absolute coord:', evt.clientX, evt.clientY);
-      console.log('relative coord:', x, y);
-      console.log('video element:', videoHandler.element, 'region element:', videoHandler.region.element);
-      console.log();
-      videoHandler.region.rect.x1 = videoHandler.region.rect.x2 = x;
-      videoHandler.region.rect.y1 = videoHandler.region.rect.y2 = y;
-    }
-  }
-}
-function HandleMouse_Move(evt: MouseEvent) {
-  Log('HandleMouse_Move');
-  if (videoHandler.isZoomed) {
-    if (oldClientX !== evt.clientX || oldClientY !== evt.clientY) {
-      consumeNextClick = true;
-      videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
+  if (evt instanceof MouseEvent) {
+    if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
+      if (evt.ctrlKey || evt.altKey) {
+        ConsumeEvent(evt);
+      }
       oldClientX = evt.clientX;
       oldClientY = evt.clientY;
+      mouseHandlers.HandleMouse_End(true);
+      mouseHandlers.HandleMouse_Move(true);
+      if (!videoHandler.isZoomed) {
+        videoHandler.region.attach(videoHandler.element);
+        const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
+        videoHandler.region.rect.x1 = videoHandler.region.rect.x2 = x;
+        videoHandler.region.rect.y1 = videoHandler.region.rect.y2 = y;
+      }
     }
-  } else {
-    const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
-    videoHandler.region.rect.x2 = x;
-    videoHandler.region.rect.y2 = y;
-    videoHandler.region.draw();
   }
 }
-function HandleMouse_End(evt: MouseEvent) {
+function HandleMouse_Move(evt: Event) {
+  Log('HandleMouse_Move');
+  if (evt instanceof MouseEvent) {
+    if (videoHandler.isZoomed) {
+      if (oldClientX !== evt.clientX || oldClientY !== evt.clientY) {
+        consumeNextClick = true;
+        videoHandler.moveZoom(evt.clientX - oldClientX, evt.clientY - oldClientY);
+        oldClientX = evt.clientX;
+        oldClientY = evt.clientY;
+      }
+    } else {
+      const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
+      videoHandler.region.rect.x2 = x;
+      videoHandler.region.rect.y2 = y;
+      videoHandler.region.draw();
+    }
+  }
+}
+function HandleMouse_End(evt: Event) {
   Log('HandleMouse_End');
-  mouseHandlers.HandleMouse_End(false);
-  mouseHandlers.HandleMouse_Move(false);
-  const { width, height } = videoHandler.region.rect;
-  if (width > 15 && height > 15) {
-    ConsumeEvent(evt);
-    if (!videoHandler.isZoomed) {
-      mouseHandlers.HandleMouse_ResetZoom(true);
-      videoHandler.applyZoom();
-      consumeNextClick = true;
-    }
-  }
-  videoHandler.region.reset();
-}
-function HandleClick(evt: MouseEvent) {
-  Log('HandleClick');
-  if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
-    if (consumeNextClick || evt.ctrlKey || evt.altKey) {
-      consumeNextClick = false;
+  if (evt instanceof MouseEvent) {
+    mouseHandlers.HandleMouse_End(false);
+    mouseHandlers.HandleMouse_Move(false);
+    const { width, height } = videoHandler.region.rect;
+    if (width > 15 && height > 15) {
       ConsumeEvent(evt);
+      if (!videoHandler.isZoomed) {
+        mouseHandlers.HandleMouse_ResetZoom(true);
+        videoHandler.applyZoom();
+        consumeNextClick = true;
+      }
+    }
+    videoHandler.region.reset();
+  }
+}
+function HandleClick(evt: Event) {
+  Log('HandleClick');
+  if (evt instanceof MouseEvent) {
+    if (IsLeftClick(evt) && videoHandler.element && videoHandler.isClickedInside(evt)) {
+      if (consumeNextClick || evt.ctrlKey || evt.altKey) {
+        consumeNextClick = false;
+        ConsumeEvent(evt);
+      }
     }
   }
 }
 
-function HandleMouse_ResetZoom(evt: MouseEvent) {
+function HandleMouse_ResetZoom(evt: Event) {
   Log('HandleMouse_ResetZoom');
-  if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
-    ConsumeEvent(evt);
-    mouseHandlers.HandleMouse_ResetZoom(false);
-    videoHandler.resetZoom();
+  if (evt instanceof MouseEvent) {
+    if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
+      ConsumeEvent(evt);
+      mouseHandlers.HandleMouse_ResetZoom(false);
+      videoHandler.resetZoom();
+    }
   }
 }
-
-GetVideo();
-// main();
 
 function Log(...args: any[]) {
   if (true) console.info('%cVideo Zoom:', 'color: red', ...args);
 }
 Log('Loaded');
+
+main();

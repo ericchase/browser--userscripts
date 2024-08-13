@@ -1,7 +1,7 @@
-type NotificationCallback<Value> = (value: Value) => { abort: boolean } | void;
+type NotificationCallback<T> = (data: T) => { abort: boolean } | void;
 
 export class ElementAddedObserver {
-  constructor({ source, options = { subtree: true }, selector, includeExistingElements = true }: { source: Node & { querySelectorAll?: Function }; options?: { subtree?: boolean }; selector: string; includeExistingElements?: boolean }) {
+  constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }: { source?: Node & { querySelectorAll?: Function }; options?: { subtree?: boolean }; selector: string; includeExistingElements?: boolean }) {
     this.mutationObserver = new MutationObserver((mutationRecords: MutationRecord[]) => {
       for (const record of mutationRecords) {
         if (record.type === 'childList') {

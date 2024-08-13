@@ -1,6 +1,6 @@
 const header = `
 // ==UserScript==
-// @name        p5play.org: Remove Login Modal
+// @name        org.p5play: Remove Login Modal
 // @author      ericchase
 // @namespace   ericchase
 // @match       https://p5play.org/learn/*
@@ -11,3 +11,13 @@ const header = `
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 `;
+
+import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.js';
+
+new ElementAddedObserver({
+  selector: '.unauth',
+}).subscribe((element) => {
+  element.remove();
+});
+
+document.body.style.setProperty('overflow', 'unset');
