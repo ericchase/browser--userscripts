@@ -1,59 +1,40 @@
-import { FilterDirectoryListing } from '../src/lib/ericchase/Platform/Cxx/LSD.js';
+import { ProcessTemplateFile, RegisterIncludeSource } from '../src/@/Video Zoom/automation-scripts/lib/Web/Template Processor.mjs';
+import { GlobManager } from '../src/lib/ericchase/Platform/Bun/Path.js';
 import { Run } from '../src/lib/ericchase/Platform/Node/Process.js';
-import { ProcessTemplateFile, RegisterIncludeSource } from '../src/lib/ericchase/Platform/Web/HTML/TemplateProcessor.js';
+
+function extractHeaderComment(source: string) {
+  const HEADER_START = 'const header = `';
+  const HEADER_END = '`;';
+  const beg = source.indexOf(HEADER_START);
+  if (beg === -1) return '';
+  const end = source.indexOf(HEADER_END, beg);
+  if (end === -1) return '';
+  return source.slice(beg + HEADER_START.length, end) + '\n';
+}
 
 await Run({ program: 'bun', args: ['run', 'format'] });
 
-const I = {
-  dir: './src',
-  ext: '.user.ts',
-};
-const O = {
-  dir: './release',
-  ext: '.user.js',
-};
+const gm = new GlobManager();
 
-// Bundle Source
-{
-  const HEADER_START = 'const header = `';
-  const HEADER_END = '`;';
-  function extractHeaderComment(source: string) {
-    const beg = source.indexOf(HEADER_START);
-    if (beg === -1) return '';
-    const end = source.indexOf(HEADER_END, beg);
-    if (end === -1) return '';
-    return source.slice(beg + HEADER_START.length, end) + '\n';
-  }
-
-  const { files } = await FilterDirectoryListing({
-    path: I.dir,
-    include: ['*' + I.ext],
+const source_group = gm.scan('./src', '*.user.ts');
+for (const pathGroup of source_group.pathGroups) {
+  const source = await Bun.file(pathGroup.path).text();
+  const header = extractHeaderComment(source);
+  const { outputs, success } = await Bun.build({
+    entrypoints: [pathGroup.path],
+    target: 'browser',
   });
-  for (const name of files) {
-    const input_path = I.dir + '/' + name;
-    const output_path = O.dir + '/' + name.slice(0, name.lastIndexOf(I.ext)) + O.ext;
-    const source = await Bun.file(input_path).text();
-    const header = extractHeaderComment(source);
-
-    const { outputs, success } = await Bun.build({
-      entrypoints: [input_path],
-      target: 'browser',
-    });
-    if (success) {
-      Bun.write(output_path, new Blob([header, outputs[0]], { type: outputs[0].type }));
-    }
+  if (success) {
+    Bun.write(pathGroup.replaceBasedir('./release').replaceExt('.js').path, new Blob([header, outputs[0]], { type: outputs[0].type }));
   }
 }
 
 // Build Links
+const bundle_group = gm.scan('./release', '*.user.js');
 {
-  const { files } = await FilterDirectoryListing({
-    path: O.dir,
-    include: ['*' + O.ext],
-  });
   const links: string[] = [];
-  for (const name of files) {
-    links.push(`<a href="${O.dir}/${name}" target="_blank">${name}</a>`);
+  for (const { basedir, dir, name, ext } of bundle_group.pathGroups) {
+    links.push(`<a href="${'./' + basedir + dir + '/' + name + ext}" target="_blank">${name + ext}</a>`);
   }
   RegisterIncludeSource('links', links.join('\n'));
   await ProcessTemplateFile('./index.template.html', './index.html');

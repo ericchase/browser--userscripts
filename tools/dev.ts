@@ -1,20 +1,21 @@
 import { Debounce } from '../src/lib/ericchase/Algorithm/Debounce.js';
 import { Watch } from '../src/lib/ericchase/Platform/Cxx/Watch.js';
-import { PipeStdio, Run } from '../src/lib/ericchase/Platform/Node/Process.js';
 
-const build = Debounce(async () => {
-  await PipeStdio(Run({ program: 'bun', args: ['run', 'build'] }));
-}, 50);
+const runBuild = Debounce(async () => {
+  const cmd = 'bun run build';
+  console.log(`[${new Date().toLocaleTimeString()}] > ${cmd}`);
+  Bun.spawnSync(cmd.split(' '));
+}, 250);
 
 try {
   await Watch({
     path: './src',
-    debounce_interval: 50,
+    debounce_interval: 250,
     change_cb: () => {
-      build();
+      runBuild();
     },
     error_cb: (error) => {
-      console.error('\x1b[31mfail\x1b[0m', 'ERROR', error);
+      console.error('ERROR:', error);
     },
   });
 } catch (err) {
