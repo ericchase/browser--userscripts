@@ -18,12 +18,12 @@ const header = `
 `;
 
 import { ConsumeEvent } from './@/Video Zoom/src/lib/Event.js';
-import { ToAdjustedEm, ToRelativeEm } from './lib/external/Platform/Web/CSS/Size.js';
-import { IsVisible } from './lib/external/Platform/Web/DOM/Element/Visibility.js';
-import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.js';
-import { EventManager } from './lib/external/Platform/Web/Event/Manager.js';
-import { RegionHighlighter } from './lib/external/Platform/Web/RegionHighlighter.js';
-import { Rect } from './lib/external/Utility/Rect.js';
+import { ToAdjustedEm, ToRelativeEm } from './lib/ericchase/Platform/Web/CSS/Size.js';
+import { IsVisible } from './lib/ericchase/Platform/Web/DOM/Element/Visibility.js';
+import { ElementAddedObserver } from './lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.js';
+import { EventManager } from './lib/ericchase/Platform/Web/Event/Manager.js';
+import { RegionHighlighter } from './lib/ericchase/Platform/Web/RegionHighlighter.js';
+import { Rect } from './lib/ericchase/Utility/Rect.js';
 
 class VideoHandler {
   region: RegionHighlighter;

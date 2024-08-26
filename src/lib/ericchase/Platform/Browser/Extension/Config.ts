@@ -1,8 +1,10 @@
 import { ReadFile, WriteFile } from '../../Node/Fs.js';
 
+export type POJO = Record<string, any>;
+
 export class Config {
-  constructor(public pojo: Record<string, any>) {}
-  get(this: Config, key: string) {
+  constructor(public pojo: POJO) {}
+  get(this: Config, key: string): unknown {
     return this.pojo[key];
   }
   set(this: Config, key: string, value: any) {
@@ -39,10 +41,6 @@ export class Config {
   static async readConfig(path: string) {
     return new Config(JSON.parse(await ReadFile(path)));
   }
-
-  static async extractSubConfig(config: Config, key: string) {
-    return new Config(config.get(key));
-  }
 }
 
 interface SemanticVersion {
@@ -57,25 +55,22 @@ interface SemanticVersion {
 //  PATCH version when you make backward compatible bug fixes
 // https://semver.org/
 
-export async function GetSemanticVersion() {
-  const version: SemanticVersion = JSON.parse(await ReadFile('./version.json'));
+export async function GetSemanticVersion(version_json_path: string) {
+  const version: SemanticVersion = JSON.parse(await ReadFile(version_json_path));
   return `${version.major}.${version.minor}.${version.patch}`;
 }
-
-export async function IncrementVersionMajor() {
-  const version: SemanticVersion = JSON.parse(await ReadFile('./version.json'));
+export async function IncrementVersionMajor(version_json_path: string) {
+  const version: SemanticVersion = JSON.parse(await ReadFile(version_json_path));
   version.major += 1;
-  await WriteFile('./version.json', JSON.stringify(version));
+  await WriteFile(version_json_path, JSON.stringify(version));
 }
-
-export async function IncrementVersionMinor() {
-  const version: SemanticVersion = JSON.parse(await ReadFile('./version.json'));
+export async function IncrementVersionMinor(version_json_path: string) {
+  const version: SemanticVersion = JSON.parse(await ReadFile(version_json_path));
   version.minor += 1;
-  await WriteFile('./version.json', JSON.stringify(version));
+  await WriteFile(version_json_path, JSON.stringify(version));
 }
-
-export async function IncrementVersionPatch() {
-  const version: SemanticVersion = JSON.parse(await ReadFile('./version.json'));
+export async function IncrementVersionPatch(version_json_path: string) {
+  const version: SemanticVersion = JSON.parse(await ReadFile(version_json_path));
   version.patch += 1;
-  await WriteFile('./version.json', JSON.stringify(version));
+  await WriteFile(version_json_path, JSON.stringify(version));
 }

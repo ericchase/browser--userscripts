@@ -12,7 +12,7 @@ const header = `
 // ==/UserScript==
 `;
 
-import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.js';
+import { ElementAddedObserver } from './lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.js';
 
 new ElementAddedObserver({
   selector: '.unauth',

@@ -1,13 +1,13 @@
-export type NotificationCallback<Value> = (value: Value) => void;
-export type UpdateCallback<Value> = (value: Value) => Value;
+type SubscriptionCallback<Value> = (value: Value) => void;
+type UpdateCallback<Value> = (value: Value) => Value;
 
-export class Store<Value> {
+class Store<Value> {
   protected currentValue: Value;
-  protected subscriptionSet = new Set<NotificationCallback<Value>>();
+  protected subscriptionSet = new Set<SubscriptionCallback<Value>>();
   constructor(initialValue: Value) {
     this.currentValue = initialValue;
   }
-  subscribe(callback: NotificationCallback<Value>) {
+  subscribe(callback: SubscriptionCallback<Value>) {
     console.log('store, subscribe');
     this.subscriptionSet.add(callback);
     callback(this.currentValue);
@@ -36,15 +36,15 @@ export class Store<Value> {
     this.set(callback(this.currentValue));
   }
 }
-export class ComputedStore<SourceValue, ComputedValue> {
+class ComputedStore<SourceValue, ComputedValue> {
   protected cachedValue: ComputedValue | undefined;
-  protected subscriptionSet = new Set<NotificationCallback<ComputedValue>>();
+  protected subscriptionSet = new Set<SubscriptionCallback<ComputedValue>>();
   protected sourceUnsubscribe: (() => void) | undefined = undefined;
   constructor(
     protected source: Store<SourceValue> | ComputedStore<SourceValue, any>, //
     protected computeFn: (value: SourceValue) => ComputedValue,
   ) {}
-  subscribe(callback: NotificationCallback<ComputedValue>) {
+  subscribe(callback: SubscriptionCallback<ComputedValue>) {
     console.log('computed, subscribe');
     if (this.subscriptionSet.size === 0) {
       this.sourceUnsubscribe = this.source.subscribe((value) => {

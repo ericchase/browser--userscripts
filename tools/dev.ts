@@ -1,6 +1,6 @@
-import { Debounce } from '../src/lib/external/Algorithm/Debounce.js';
-import { Watch } from '../src/lib/external/Platform/Cxx/Watch.js';
-import { PipeStdio, Run } from '../src/lib/external/Platform/Node/Process.js';
+import { Debounce } from '../src/lib/ericchase/Algorithm/Debounce.js';
+import { Watch } from '../src/lib/ericchase/Platform/Cxx/Watch.js';
+import { PipeStdio, Run } from '../src/lib/ericchase/Platform/Node/Process.js';
 
 const build = Debounce(async () => {
   await PipeStdio(Run({ program: 'bun', args: ['run', 'build'] }));

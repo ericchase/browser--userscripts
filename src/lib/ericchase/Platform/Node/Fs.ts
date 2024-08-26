@@ -2,7 +2,9 @@ import node_fs from 'node:fs/promises';
 import node_path from 'node:path';
 
 export async function DeleteFile(path: string) {
-  await node_fs.unlink(path);
+  try {
+    await node_fs.unlink(path);
+  } catch (error) {}
 }
 
 export async function ReadFile(path: string) {

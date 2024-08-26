@@ -12,5 +12,5 @@ const header = `
 // ==/UserScript==
 `;
 
-import { SaveUrl } from './lib/external/Platform/Web/AnchorDownloader.js';
+import { SaveUrl } from './lib/ericchase/Platform/Web/AnchorDownloader.js';
 SaveUrl(location.href, new URL(location.href).pathname.split('/').at(-1) ?? '');

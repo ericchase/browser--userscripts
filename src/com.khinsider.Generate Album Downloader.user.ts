@@ -12,12 +12,12 @@ const header = `
 // ==/UserScript==
 `;
 
-import { Sleep } from './lib/external/Algorithm/Sleep.js';
-import { SaveText } from './lib/external/Platform/Web/AnchorDownloader.js';
-import { $$ } from './lib/external/Platform/Web/DOM/Element/QuerySelectorAll.js';
-import { ElementAddedObserver } from './lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.js';
-import { OpenWindow } from './lib/external/Platform/Web/Window/Open.js';
-import { JobQueue } from './lib/external/Utility/JobQueue.js';
+import { Sleep } from './lib/ericchase/Algorithm/Sleep.js';
+import { SaveText } from './lib/ericchase/Platform/Web/AnchorDownloader.js';
+import { $$ } from './lib/ericchase/Platform/Web/DOM/Element/QuerySelectorAll.js';
+import { ElementAddedObserver } from './lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.js';
+import { OpenWindow } from './lib/ericchase/Platform/Web/Window/Open.js';
+import { JobQueue } from './lib/ericchase/Utility/JobQueue.js';
 
 type TrackDetails = { albumName: string; trackName: string; uris: string[] };
 
