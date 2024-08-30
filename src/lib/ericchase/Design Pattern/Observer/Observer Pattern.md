@@ -23,6 +23,8 @@ https://stackoverflow.com/questions/15594905/difference-between-observer-pub-sub
 >
 > As you mentioned correctly, data binding is a generic term and it can be implemented using either Observer/Observable or Publisher/Subscriber method. Data is the Publisher/Observable.
 
+_EN: Observers observe observables. / Subscribers listen for events; publishers trigger events._
+
 ---
 
 [**JerKimball**](https://stackoverflow.com/users/48692/jerkimball) | answered Mar 24, 2013 at 7:42

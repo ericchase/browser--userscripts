@@ -1,7 +1,7 @@
 export type SubscriptionCallback<Value> = (value: Value, unsubscribe: () => void) => void;
 export type UpdateCallback<Value> = (value: Value) => Value;
 
-export class Once<Value> {
+export class Const<Value> {
   protected subscriptionSet = new Set<SubscriptionCallback<Value>>();
   constructor(protected value?: Value) {}
   subscribe(callback: SubscriptionCallback<Value>): () => void {

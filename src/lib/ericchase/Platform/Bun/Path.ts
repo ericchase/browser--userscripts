@@ -12,7 +12,7 @@ export class PathGroup {
     return new PathGroup(basedir, dir, name, ext);
   }
   get path() {
-    return node_path.join(this.basedir, this.dir, this.name + this.ext);
+    return node_path.normalize(node_path.join(this.basedir, this.dir, this.name + this.ext));
   }
   replaceBasedir(new_basedir: string) {
     return new PathGroup(node_path.normalize(new_basedir), this.dir, this.name, this.ext);
@@ -21,10 +21,10 @@ export class PathGroup {
     return new PathGroup(this.basedir, node_path.normalize(new_dir), this.name, this.ext);
   }
   replaceName(new_name: string) {
-    return new PathGroup(this.basedir, this.dir, new_name, this.ext);
+    return new PathGroup(this.basedir, this.dir, node_path.normalize(new_name), this.ext);
   }
   replaceExt(new_ext: string) {
-    return new PathGroup(this.basedir, this.dir, this.name, new_ext);
+    return new PathGroup(this.basedir, this.dir, this.name, node_path.normalize(new_ext));
   }
 }
 
@@ -36,47 +36,78 @@ export class GlobGroup {
   ) {}
   static new({ basedir, pattern }: { basedir: string; pattern: string }) {
     basedir = node_path.normalize(basedir);
-    const pathSet = new Set<PathGroup>();
+    const pathGroupSet = new Set<PathGroup>();
     for (const path of new Bun.Glob(pattern).scanSync(basedir)) {
-      pathSet.add(PathGroup.new(basedir, path));
+      pathGroupSet.add(PathGroup.new(basedir, path));
     }
-    return new GlobGroup(basedir, pattern, pathSet);
-  }
-  get paths() {
-    return this.path_iterator();
+    return new GlobGroup(basedir, pattern, pathGroupSet);
   }
   get pathGroups() {
     return this.pathGroup_iterator();
   }
+  get paths() {
+    return this.path_iterator();
+  }
   replaceBasedir(new_base: string) {
     new_base = node_path.normalize(new_base);
     const new_pathGroupSet = new Set<PathGroup>();
-    for (const group of this.pathGroupSet) {
-      new_pathGroupSet.add(group.replaceBasedir(new_base));
+    for (const pathGroup of this.pathGroupSet) {
+      new_pathGroupSet.add(pathGroup.replaceBasedir(new_base));
     }
     return new GlobGroup(new_base, this.pattern, new_pathGroupSet);
   }
-  *path_iterator() {
-    for (const group of this.pathGroupSet) {
-      yield group.path;
+  *pathGroup_iterator() {
+    for (const pathGroup of this.pathGroupSet) {
+      yield pathGroup;
     }
   }
-  *pathGroup_iterator() {
-    for (const group of this.pathGroupSet) {
-      yield group;
+  *path_iterator() {
+    for (const pathGroup of this.pathGroupSet) {
+      yield pathGroup.path;
     }
   }
 }
 
 export class GlobManager {
+  static Scan(basedir: string, pattern: string) {
+    return GlobGroup.new({ basedir: node_path.normalize(basedir), pattern });
+  }
   globGroupMap = new Map<string, GlobGroup>();
-  getGroup(basedir: string, pattern: string) {
+  get globGroups() {
+    return this.globGroupMap.values();
+  }
+  get pathGroups() {
+    return this.pathGroup_iterator();
+  }
+  get paths() {
+    return this.path_iterator();
+  }
+  getGlobGroup(basedir: string, pattern: string) {
     this.globGroupMap.get(`${basedir}|${pattern}`);
   }
+  update(globManager: GlobManager) {
+    for (const [key, globGroup] of globManager.globGroupMap) {
+      this.globGroupMap.set(key, globGroup);
+    }
+    return this;
+  }
   scan(basedir: string, pattern: string) {
-    basedir = node_path.normalize(basedir);
-    const group = GlobGroup.new({ basedir, pattern });
-    this.globGroupMap.set(`${basedir}|${pattern}`, group);
-    return group;
+    const globGroup = GlobManager.Scan(basedir, pattern);
+    this.globGroupMap.set(`${globGroup.basedir}|${globGroup.pattern}`, globGroup);
+    return this;
+  }
+  *pathGroup_iterator() {
+    for (const globGroup of this.globGroups) {
+      for (const pathGroup of globGroup.pathGroups) {
+        yield pathGroup;
+      }
+    }
+  }
+  *path_iterator() {
+    for (const globGroup of this.globGroups) {
+      for (const pathGroup of globGroup.pathGroups) {
+        yield pathGroup.path;
+      }
+    }
   }
 }
