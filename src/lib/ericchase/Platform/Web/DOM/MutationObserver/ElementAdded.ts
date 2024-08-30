@@ -1,4 +1,4 @@
-export type SubscriptionCallback = (element: Element) => { abort: boolean } | void;
+export type SubscriptionCallback = (element: Element, unsubscribe: () => void) => void;
 
 export class ElementAddedObserver {
   constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }: { source?: Node & { querySelectorAll?: Function }; options?: { subtree?: boolean }; selector: string; includeExistingElements?: boolean }) {
@@ -34,11 +34,13 @@ export class ElementAddedObserver {
   }
   public subscribe(callback: SubscriptionCallback): () => void {
     this.subscriptionSet.add(callback);
+    let abort = false;
     for (const element of this.matchSet) {
-      if (callback(element)?.abort === true) {
+      callback(element, () => {
         this.subscriptionSet.delete(callback);
-        return () => {};
-      }
+        abort = true;
+      });
+      if (abort) return () => {};
     }
     return () => {
       this.subscriptionSet.delete(callback);
@@ -51,9 +53,9 @@ export class ElementAddedObserver {
     if (!this.matchSet.has(element)) {
       this.matchSet.add(element);
       for (const callback of this.subscriptionSet) {
-        if (callback(element)?.abort === true) {
+        callback(element, () => {
           this.subscriptionSet.delete(callback);
-        }
+        });
       }
     }
   }

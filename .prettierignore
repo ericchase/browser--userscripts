@@ -2,7 +2,6 @@
 
 coverage
 docs
-src/lib/ericchase
 
 # Lock Files
 bun.lockb

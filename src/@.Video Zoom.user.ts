@@ -121,11 +121,23 @@ class VideoHandler {
   }
 }
 
-async function main() {
-  for (const toggle of Object.values(mouseHandlers)) {
-    toggle(false);
-  }
+const evg_window = EventManager.new(window).addGroups({
+  mouseBegin: [
+    ['click', HandleClick, ['bubbles', 'capture']],
+    ['mousedown', HandleMouse_Begin, ['bubbles', 'capture']],
+  ],
+  mouseMoveEnd: [
+    ['mousemove', HandleMouse_Move, 'capture'],
+    ['mouseup', HandleMouse_End, ['bubbles', 'capture']],
+  ],
+  resetZoom: [
+    ['contextmenu', HandleMouse_ResetZoom, ['capture']], //
+  ],
+});
 
+
+
+async function main() {
   const videoObserver = new ElementAddedObserver({
     selector: 'video',
   });
@@ -134,64 +146,12 @@ async function main() {
     if (element instanceof HTMLVideoElement && element.isConnected && IsVisible(element)) {
       Log('Setup VideoHandler');
       videoHandler = new VideoHandler(element);
-      mouseHandlers.HandleMouse_Begin(true);
+      // eg_MouseBegin.enable();
+      evg_window.mouseBegin.enable();
       return { abort: true };
     }
   });
 }
-
-function IsLeftClick(e: MouseEvent) {
-  return e.button === 0;
-}
-
-function Toggler(onEnable: () => void, onDisable: () => void) {
-  let isEnabled = false;
-  return (enable: any = undefined) => {
-    if (isEnabled === enable) return;
-    isEnabled = !isEnabled;
-    isEnabled ? onEnable() : onDisable();
-  };
-}
-
-// EventManager.add({ types: ['adsf'], sources: [window, document.body], callbacks: (types, evt) => HandleMouse_Begin(evt), options: {} });
-// EventManager.add(['click'], [window], HandleClick);
-// console.log('Listener Map:', EventManager.listenerMap);
-
-const mouseHandlers = {
-  HandleMouse_Begin: Toggler(
-    () => {
-      // eventManager.on(['click', 'mousedown'], [window], () => ({ abort: true }), { bubble: true, capture: true });
-      window.addEventListener('mousedown', HandleMouse_Begin);
-      window.addEventListener('mousedown', HandleMouse_Begin, true);
-      window.addEventListener('click', HandleClick);
-      window.addEventListener('click', HandleClick, true);
-    },
-    () => {
-      window.removeEventListener('mousedown', HandleMouse_Begin);
-      window.removeEventListener('mousedown', HandleMouse_Begin, true);
-      window.removeEventListener('click', HandleClick);
-      window.removeEventListener('click', HandleClick, true);
-    },
-  ),
-  HandleMouse_Move: Toggler(
-    () => window.addEventListener('mousemove', HandleMouse_Move, true),
-    () => window.removeEventListener('mousemove', HandleMouse_Move, true),
-  ),
-  HandleMouse_End: Toggler(
-    () => {
-      window.addEventListener('mouseup', HandleMouse_End);
-      window.addEventListener('mouseup', HandleMouse_End, true);
-    },
-    () => {
-      window.removeEventListener('mouseup', HandleMouse_End);
-      window.removeEventListener('mouseup', HandleMouse_End, true);
-    },
-  ),
-  HandleMouse_ResetZoom: Toggler(
-    () => window.addEventListener('contextmenu', HandleMouse_ResetZoom, true),
-    () => window.removeEventListener('contextmenu', HandleMouse_ResetZoom, true),
-  ),
-};
 
 let videoHandler = new VideoHandler(undefined);
 
@@ -207,8 +167,7 @@ function HandleMouse_Begin(evt: Event) {
       }
       oldClientX = evt.clientX;
       oldClientY = evt.clientY;
-      mouseHandlers.HandleMouse_End(true);
-      mouseHandlers.HandleMouse_Move(true);
+      evg_window.mouseMoveEnd.enable();
       if (!videoHandler.isZoomed) {
         videoHandler.region.attach(videoHandler.element);
         const { x, y } = videoHandler.getRelativeCoords(evt.clientX, evt.clientY);
@@ -239,13 +198,14 @@ function HandleMouse_Move(evt: Event) {
 function HandleMouse_End(evt: Event) {
   Log('HandleMouse_End');
   if (evt instanceof MouseEvent) {
-    mouseHandlers.HandleMouse_End(false);
-    mouseHandlers.HandleMouse_Move(false);
+    // eg_MouseMoveEnd.disable();
+    evg_window.mouseMoveEnd.disable();
     const { width, height } = videoHandler.region.rect;
     if (width > 15 && height > 15) {
       ConsumeEvent(evt);
       if (!videoHandler.isZoomed) {
-        mouseHandlers.HandleMouse_ResetZoom(true);
+        // eg_ResetZoom.enable();
+        evg_window.resetZoom.enable();
         videoHandler.applyZoom();
         consumeNextClick = true;
       }
@@ -270,10 +230,15 @@ function HandleMouse_ResetZoom(evt: Event) {
   if (evt instanceof MouseEvent) {
     if (videoHandler.isZoomed && videoHandler.isClickedInside(evt)) {
       ConsumeEvent(evt);
-      mouseHandlers.HandleMouse_ResetZoom(false);
+      // eg_ResetZoom.disable();
+      evg_window.resetZoom.disable();
       videoHandler.resetZoom();
     }
   }
+}
+
+function IsLeftClick(e: MouseEvent) {
+  return e.button === 0;
 }
 
 function Log(...args: any[]) {

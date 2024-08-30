@@ -1,4 +1,4 @@
-export type SubscriptionCallback = (record: MutationRecord) => { abort: boolean } | void;
+export type SubscriptionCallback = (record: MutationRecord, unsubscribe: () => void) => void;
 
 export class ChildListObserver {
   constructor({ source = document.documentElement, options = { subtree: true } }: { source?: Node; options?: { subtree?: boolean } }) {
@@ -19,9 +19,9 @@ export class ChildListObserver {
   protected subscriptionSet = new Set<SubscriptionCallback>();
   private send(record: MutationRecord) {
     for (const callback of this.subscriptionSet) {
-      if (callback(record)?.abort === true) {
+      callback(record, () => {
         this.subscriptionSet.delete(callback);
-      }
+      });
     }
   }
 }

@@ -1,8 +1,8 @@
-import { endpoints } from '../Array/Endpoints.js';
+import { Endpoints } from '../Array/Endpoints.js';
 import { midpoint } from '../Math/Midpoint.js';
 
 export function BinarySearch<T>(array: T[], target: T, isOrdered: (a: T, b: T) => boolean = (a: T, b: T) => a < b): number {
-  let [begin, end] = endpoints(array);
+  let [begin, end] = Endpoints(array);
   let middle = midpoint(begin, end);
   while (begin < end) {
     if (isOrdered(target, array[middle])) {
@@ -23,7 +23,7 @@ BinarySearch.Lower = function <T>(array: T[], target: T, isOrdered: (a: T, b: T)
   return BinarySearch.Upper(array, target, (a: T, b: T) => isOrdered(a, b) || !isOrdered(b, a)) + 1;
 };
 BinarySearch.Upper = function <T>(array: T[], target: T, isOrdered: (a: T, b: T) => boolean = (a: T, b: T) => a < b): number {
-  let [begin, end] = endpoints(array);
+  let [begin, end] = Endpoints(array);
   let middle = midpoint(begin, end);
   while (begin < end) {
     if (isOrdered(target, array[middle])) {

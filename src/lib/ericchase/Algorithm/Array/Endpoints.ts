@@ -1,4 +1,4 @@
-export function endpoints<T>(array: T[]): [number, number] {
+export function Endpoints<T>(array: T[]): [number, number] {
   if (!Array.isArray(array) || array.length < 1) {
     return [-1, -1];
   }

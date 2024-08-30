@@ -10,12 +10,12 @@
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
-// src/lib/external/Algorithm/Sleep.ts
+// src/lib/ericchase/Algorithm/Sleep.ts
 async function Sleep(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// src/lib/external/Platform/Web/AnchorDownloader.ts
+// src/lib/ericchase/Platform/Web/AnchorDownloader.ts
 function anchor_downloader(data, filename) {
   const a = document.createElement('a');
   a.setAttribute('href', data);
@@ -31,7 +31,7 @@ function SaveText(text, filename) {
   SaveBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), filename);
 }
 
-// src/lib/external/Platform/Web/DOM/Element/_elementReferenceMap.ts
+// src/lib/ericchase/Platform/Web/DOM/Element/_elementReferenceMap.ts
 function GetElementReference(tagName) {
   const ref = tagNameToElementReferenceMap.get(tagName) || document.createElement(tagName).constructor;
   if (!tagNameToElementReferenceMap.has(tagName)) {
@@ -41,7 +41,7 @@ function GetElementReference(tagName) {
 }
 var tagNameToElementReferenceMap = new Map();
 
-// src/lib/external/Platform/Web/DOM/Element/QuerySelectorAll.ts
+// src/lib/ericchase/Platform/Web/DOM/Element/QuerySelectorAll.ts
 function $$(tagName, selector, source = document.documentElement, includeSourceInMatch = false) {
   const elements = [];
   if (includeSourceInMatch === true && source instanceof GetElementReference(tagName) && source.matches(selector)) {
@@ -56,48 +56,36 @@ function $$(tagName, selector, source = document.documentElement, includeSourceI
   return elements;
 }
 
-// src/lib/external/Platform/Web/DOM/MutationObserver/ElementAdded.ts
+// src/lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.ts
 class ElementAddedObserver {
   constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }) {
     this.mutationObserver = new MutationObserver((mutationRecords) => {
       for (const record of mutationRecords) {
-        if (record.type === 'childList') {
-          if (record.target instanceof Element && record.target.matches(selector)) {
-            this.send(record.target);
-          }
-          for (const node of record.addedNodes) {
-            if (node instanceof Element && node.matches(selector)) {
-              this.send(node);
-            }
+        if (record.target instanceof Element && record.target.matches(selector)) {
+          this.send(record.target);
+        }
+        const treeWalker = document.createTreeWalker(record.target, NodeFilter.SHOW_ELEMENT);
+        while (treeWalker.nextNode()) {
+          if (treeWalker.currentNode.matches(selector)) {
+            this.send(treeWalker.currentNode);
           }
         }
       }
     });
     this.mutationObserver.observe(source, { childList: true, subtree: options.subtree ?? true });
     if (includeExistingElements === true) {
-      const findMatches = (source2) => {
-        if (source2.matches(selector)) {
-          this.send(source2);
-        }
-        for (const element of source2.querySelectorAll(selector)) {
-          this.send(element);
-        }
-      };
-      if (source instanceof Element) findMatches(source);
-      else if (source.querySelectorAll) {
-        for (const element of source.querySelectorAll(selector)) {
-          this.send(element);
-        }
-      } else {
-        if (source.parentElement) findMatches(source.parentElement);
-        else {
-          for (const node of source.childNodes) {
-            if (node instanceof Element) {
-              findMatches(node);
-            }
-          }
+      const treeWalker = document.createTreeWalker(document, NodeFilter.SHOW_ELEMENT);
+      while (treeWalker.nextNode()) {
+        if (treeWalker.currentNode.matches(selector)) {
+          this.send(treeWalker.currentNode);
         }
       }
+    }
+  }
+  disconnect() {
+    this.mutationObserver.disconnect();
+    for (const callback of this.subscriptionSet) {
+      this.subscriptionSet.delete(callback);
     }
   }
   subscribe(callback) {
@@ -127,7 +115,7 @@ class ElementAddedObserver {
   }
 }
 
-// src/lib/external/Platform/Web/Window/Open.ts
+// src/lib/ericchase/Platform/Web/Window/Open.ts
 function OpenWindow(url, onLoad, onUnload) {
   const proxy = window.open(url, '_blank');
   if (proxy) {
@@ -144,14 +132,14 @@ function OpenWindow(url, onLoad, onUnload) {
   }
 }
 
-// src/lib/external/Utility/JobQueue.ts
+// src/lib/ericchase/Utility/JobQueue.ts
 class JobQueue {
   delay_ms;
   constructor(delay_ms) {
     this.delay_ms = delay_ms;
   }
-  add(fn) {
-    this.queue.push(fn);
+  add(fn, tag) {
+    this.queue.push({ fn, tag });
     if (this.running === false) {
       this.running = true;
       this.run();
@@ -180,9 +168,10 @@ class JobQueue {
   subscriptionSet = new Set();
   run() {
     if (this.queueIndex < this.queue.length) {
-      this.queue[this.queueIndex++]()
-        .then((value) => this.send({ value }))
-        .catch((error) => this.send({ error }));
+      const { fn, tag } = this.queue[this.queueIndex++];
+      fn()
+        .then((value) => this.send({ value, tag }))
+        .catch((error) => this.send({ error, tag }));
       setTimeout(() => this.run(), this.delay_ms);
     } else {
       this.running = false;
@@ -192,7 +181,7 @@ class JobQueue {
     this.completionCount++;
     this.results.push(result);
     for (const callback of this.subscriptionSet) {
-      if (callback(result.value, result.error)?.abort === true) {
+      if (callback(result.value, result.error, result.tag)?.abort === true) {
         this.subscriptionSet.delete(callback);
       }
     }

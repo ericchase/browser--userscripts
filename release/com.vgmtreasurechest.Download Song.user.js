@@ -10,7 +10,7 @@
 // @homepageURL https://github.com/ericchase/browser--userscripts
 // ==/UserScript==
 
-// src/lib/external/Platform/Web/AnchorDownloader.ts
+// src/lib/ericchase/Platform/Web/AnchorDownloader.ts
 function anchor_downloader(data, filename) {
   const a = document.createElement('a');
   a.setAttribute('href', data);
