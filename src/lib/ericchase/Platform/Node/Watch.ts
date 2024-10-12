@@ -1,6 +1,7 @@
-import { type FileChangeInfo, watch } from 'node:fs/promises';
+import node_fs from 'node:fs';
+import type { Path, PathGroup } from './Path.js';
 
-export type ObserverCallback = (events: FileChangeInfo<string>[], unsubscribe: () => void) => void;
+export type ObserverCallback = (events: node_fs.promises.FileChangeInfo<string>[], unsubscribe: () => void) => void;
 export type UnobserveFn = () => void;
 
 export class Watcher {
@@ -9,19 +10,19 @@ export class Watcher {
    * @param recursive true
    */
   constructor(
-    path: string,
+    path: Path | PathGroup,
     public debounce_interval = 0,
     recursive = true,
   ) {
     // Debounced Event Notification
     let calling = false;
-    let events: FileChangeInfo<string>[] = [];
+    let events: node_fs.promises.FileChangeInfo<string>[] = [];
     let timer = setTimeout(() => {});
-    const enqueue = (event: FileChangeInfo<string>) => {
+    const enqueue = (event: node_fs.promises.FileChangeInfo<string>) => {
       events.push(event);
       if (calling === false) {
         clearTimeout(timer);
-        timer = setTimeout(async () => {
+        timer = setTimeout(() => {
           if (calling === false) {
             calling = true;
             clearTimeout(timer);
@@ -33,14 +34,16 @@ export class Watcher {
         }, debounce_interval);
       }
     };
-    this.done = new Promise<void>(async (resolve) => {
+    this.done = (async () => {
       try {
-        for await (const event of watch(path, { recursive, signal: this.controller.signal })) {
+        for await (const event of node_fs.promises.watch(path.path, {
+          recursive,
+          signal: this.controller.signal,
+        })) {
           enqueue(event);
         }
       } catch (err) {}
-      resolve();
-    });
+    })();
   }
   public abort() {
     this.controller.abort();
@@ -54,7 +57,7 @@ export class Watcher {
   public readonly done: Promise<void>;
   protected callbackSet = new Set<ObserverCallback>();
   protected controller = new AbortController();
-  protected notify(events: FileChangeInfo<string>[]): void {
+  protected notify(events: node_fs.promises.FileChangeInfo<string>[]): void {
     for (const callback of this.callbackSet) {
       callback(events, () => {
         this.callbackSet.delete(callback);
