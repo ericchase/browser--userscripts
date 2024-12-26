@@ -155,7 +155,7 @@ export async function buildStep_Rename() {
 export async function buildStep_BuildLinks() {
   const atags: string[] = [];
   for (const path_group of new GlobScanner().scan(out_dir, ...IntoPatterns('**/*', module_suffixes, '.js')).path_groups) {
-    atags.push(`<a href="./${out_dir.appendSegment(path_group.relative_path).path}" target="_blank">${path_group.relative_name}${path_group.relative_ext}</a>`);
+    atags.push(`<a href="./${out_dir.appendSegment(path_group.relative_path).path}" target="_blank">${path_group.relative_path.name}${path_group.relative_path.ext}</a>`);
   }
   const links_component = atags.join('\n');
   // register links components
