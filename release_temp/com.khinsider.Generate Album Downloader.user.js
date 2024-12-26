@@ -1,15 +1,3 @@
-// ==UserScript==
-// @name        com.khinsider: Generate Album Downloader
-// @author      ericchase
-// @namespace   ericchase
-// @match       *://downloads.khinsider.com/game-soundtracks/album/*
-// @version     1.0.0
-// @description 2023/12/20, 9:22:10 AM
-// @run-at      document-start
-// @grant       none
-// @homepageURL https://github.com/ericchase/browser--userscripts
-// ==/UserScript==
-
 // src/lib/ericchase/Platform/Web/AnchorDownloader.ts
 function anchor_downloader(data, filename) {
   const a = document.createElement('a');

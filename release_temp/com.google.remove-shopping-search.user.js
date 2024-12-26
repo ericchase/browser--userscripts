@@ -1,15 +1,3 @@
-// ==UserScript==
-// @name        org.p5play: Remove Login Modal
-// @author      ericchase
-// @namespace   ericchase
-// @match       https://p5play.org/learn/*
-// @version     1.0.0
-// @description 2024/08/11, 1:40:56 PM
-// @run-at      document-end
-// @grant       none
-// @homepageURL https://github.com/ericchase/browser--userscripts
-// ==/UserScript==
-
 // src/lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.ts
 class ElementAddedObserver {
   constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }) {
@@ -74,10 +62,16 @@ class ElementAddedObserver {
   }
 }
 
-// src/org.p5play.Remove Login Modal.user.ts
-new ElementAddedObserver({
-  selector: '.unauth',
-}).subscribe((element) => {
-  element.remove();
-});
-document.body.style.setProperty('overflow', 'unset');
+// src/com.google.remove-shopping-search.user.ts
+async function main() {
+  new ElementAddedObserver({
+    selector: 'div[role="listitem"]',
+  }).subscribe(async (element) => {
+    if (element instanceof HTMLDivElement) {
+      if (element.textContent?.includes('Shopping') || element.textContent?.includes('News') || element.textContent?.includes('Forums') || element.textContent?.includes('Web')) {
+        element.remove();
+      }
+    }
+  });
+}
+main();

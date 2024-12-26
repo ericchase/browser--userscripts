@@ -1,6 +1,6 @@
-import type { Path, PathGroup } from '../../../src/lib/ericchase/Platform/Node/Path.js';
-import { DecodeBytes, EncodeText } from '../../../src/lib/ericchase/Utility/TextCodec.js';
-import type { FilePreprocessor } from './FilePreprocessor.js';
+import type { Path, PathGroup } from 'lib/ericchase/Platform/Node/Path.js';
+import { DecodeBytes, EncodeText } from 'lib/ericchase/Utility/TextCodec.js';
+import type { FilePreprocessor } from 'tools/lib/preprocessors/FilePreprocessor.js';
 
 export class IIFEWrapperPreprocessor implements FilePreprocessor {
   constructor(public path_endings: string[]) {}

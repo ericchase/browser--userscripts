@@ -1,15 +1,3 @@
-// ==UserScript==
-// @name        org.p5play: Remove Login Modal
-// @author      ericchase
-// @namespace   ericchase
-// @match       https://p5play.org/learn/*
-// @version     1.0.0
-// @description 2024/08/11, 1:40:56 PM
-// @run-at      document-end
-// @grant       none
-// @homepageURL https://github.com/ericchase/browser--userscripts
-// ==/UserScript==
-
 // src/lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.ts
 class ElementAddedObserver {
   constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }) {

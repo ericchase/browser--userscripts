@@ -14,6 +14,13 @@
     "skipLibCheck": true,
     "strict": true,
 
+    // Import aliases
+    "paths": {
+      "lib/*": ["./src/lib/*"],
+      "src/*": ["./src/*"],
+      "tools/*": ["./tools/*"]
+    },
+
     "jsx": "preserve"
   },
   "exclude": [

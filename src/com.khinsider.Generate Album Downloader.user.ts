@@ -12,12 +12,13 @@ const header = `
 // ==/UserScript==
 `;
 
-import { Sleep } from './lib/ericchase/Algorithm/Sleep.js';
 import { SaveText } from './lib/ericchase/Platform/Web/AnchorDownloader.js';
-import { $$ } from './lib/ericchase/Platform/Web/DOM/Element/QuerySelectorAll.js';
 import { ElementAddedObserver } from './lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.js';
 import { OpenWindow } from './lib/ericchase/Platform/Web/Window/Open.js';
 import { JobQueue } from './lib/ericchase/Utility/JobQueue.js';
+import { PrepareMessage } from './lib/ericchase/Utility/PrepareMessage.js';
+import { Sleep } from './lib/ericchase/Utility/Sleep.js';
+import { NodeListRef } from './lib/ericchase/Web API/Node_Utility.js';
 
 type TrackDetails = { albumName: string; trackName: string; uris: string[] };
 
@@ -25,24 +26,22 @@ async function main() {
   const trackList: TrackDetails[] = [];
   const jobQueue = new JobQueue<TrackDetails>(1000);
   jobQueue.subscribe((trackDetails, error) => {
-    if (error) console.log(error);
+    if (error) {
+      console.log(error);
+    }
     if (trackDetails) {
       trackList.push(trackDetails);
-      if (jobQueue.done === true) {
-        generateDownloaderScript(trackList);
-      }
     }
   });
-
   new ElementAddedObserver({
     selector: 'table#songlist',
-  }).subscribe((tableSonglist) => {
+  }).subscribe(async (tableSonglist) => {
     if (tableSonglist instanceof HTMLTableElement) {
-      for (const anchorSong of $$('a', '.playlistDownloadSong > a', tableSonglist)) {
-        if (anchorSong instanceof HTMLAnchorElement) {
-          jobQueue.add(() => getSongUris(anchorSong));
-        }
+      for (const atag_song of NodeListRef(tableSonglist.querySelectorAll('.playlistDownloadSong > a')).as(HTMLAnchorElement)) {
+        jobQueue.add(() => getSongUris(atag_song));
       }
+      await jobQueue.done;
+      generateDownloaderScript(trackList);
     }
   });
 }
@@ -109,40 +108,40 @@ function generateDownloaderScript(trackList: TrackDetails[]) {
     albumGroup.push(details);
   }
   for (const [albumName, trackList] of albumMap) {
-    SaveText(
-      `import { mkdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+    const text = `
+      import { mkdir } from 'node:fs/promises';
+      import { resolve } from 'node:path';
 
-export function Sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(() => resolve(), ms));
-}
+      export function Sleep(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(() => resolve(), ms));
+      }
 
-type TrackDetails = { albumName: string; trackName: string; uris: string[] };
+      type TrackDetails = { albumName: string; trackName: string; uris: string[] };
 
-const trackList: TrackDetails[] = JSON.parse(\`${JSON.stringify(trackList)}\`);
-const albumName = \`${albumName}\`;
+      const trackList: TrackDetails[] = JSON.parse(\`${JSON.stringify(trackList)}\`);
+      const albumName = \`${albumName}\`;
 
-console.log('Album:', albumName);
-const url = new URL(trackList[0].uris[0]);
-const segments = url.pathname.slice(1 + url.pathname.indexOf('/')).split('/');
-const albumpath = Bun.fileURLToPath(Bun.pathToFileURL(resolve(import.meta.dir + '/' + segments[1])));
-console.log('Create Directory:', albumpath);
-await mkdir(albumpath, { recursive: true });
+      console.log('Album:', albumName);
+      const url = new URL(trackList[0].uris[0]);
+      const segments = url.pathname.slice(1 + url.pathname.indexOf('/')).split('/');
+      const albumpath = Bun.fileURLToPath(Bun.pathToFileURL(resolve(import.meta.dir + '/' + segments[1])));
+      console.log('Create Directory:', albumpath);
+      await mkdir(albumpath, { recursive: true });
 
-for (const { trackName, uris } of trackList) {
-  for (const uri of uris) {
-    console.log('Track:', trackName);
-    const url = new URL(uri);
-    const segments = url.pathname.slice(1 + url.pathname.indexOf('/')).split('/');
-    const filepath = Bun.fileURLToPath(Bun.pathToFileURL(resolve(albumpath + '/' + segments[segments.length - 1])));
-    const response = await fetch(uri);
-    console.log('Write File:', filepath);
-    await Bun.write(filepath, await response.blob());
-    await Sleep(1000);
-  }
-}`,
-      'download_' + albumName + '.ts',
-    );
+      for (const { trackName, uris } of trackList) {
+        for (const uri of uris) {
+          console.log('Track:', trackName);
+          const url = new URL(uri);
+          const segments = url.pathname.slice(1 + url.pathname.indexOf('/')).split('/');
+          const filepath = Bun.fileURLToPath(Bun.pathToFileURL(resolve(albumpath + '/' + segments[segments.length - 1])));
+          const response = await fetch(uri);
+          console.log('Write File:', filepath);
+          await Bun.write(filepath, await response.blob());
+          await Sleep(1000);
+        }
+      }
+    `;
+    SaveText(PrepareMessage(text), `download_${albumName}.ts`);
   }
 }
 

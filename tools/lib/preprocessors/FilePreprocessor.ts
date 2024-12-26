@@ -1,5 +1,5 @@
-import type { Path, PathGroup } from '../../../src/lib/ericchase/Platform/Node/Path.js';
-import type { SyncAsync } from '../../../src/lib/ericchase/Utility/Types.js';
+import type { Path, PathGroup } from 'lib/ericchase/Platform/Node/Path.js';
+import type { SyncAsync } from 'lib/ericchase/Utility/Types.js';
 
 export interface FilePreprocessor {
   pathMatches(path: Path | PathGroup): boolean;

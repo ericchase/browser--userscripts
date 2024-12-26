@@ -1,15 +1,3 @@
-// ==UserScript==
-// @name        org.p5play: Remove Login Modal
-// @author      ericchase
-// @namespace   ericchase
-// @match       https://p5play.org/learn/*
-// @version     1.0.0
-// @description 2024/08/11, 1:40:56 PM
-// @run-at      document-end
-// @grant       none
-// @homepageURL https://github.com/ericchase/browser--userscripts
-// ==/UserScript==
-
 // src/lib/ericchase/Platform/Web/DOM/MutationObserver/ElementAdded.ts
 class ElementAddedObserver {
   constructor({ source = document.documentElement, options = { subtree: true }, selector, includeExistingElements = true }) {
@@ -74,10 +62,21 @@ class ElementAddedObserver {
   }
 }
 
-// src/org.p5play.Remove Login Modal.user.ts
-new ElementAddedObserver({
-  selector: '.unauth',
-}).subscribe((element) => {
-  element.remove();
+// src/com.studiokhimera.uberquest.user.ts
+var url_set = new Set();
+console.log(url_set);
+new ElementAddedObserver({ selector: 'a > img[src*="/next-hover.png"]' }).subscribe((next, unsubscribe) => {
+  if (next instanceof HTMLImageElement) {
+    unsubscribe();
+    new ElementAddedObserver({ selector: 'img' }).subscribe((element, unsubscribe2) => {
+      if (element instanceof HTMLImageElement) {
+        if (element.src.endsWith('.webp') && url_set.has(element.src) === false) {
+          url_set.add(element.src);
+        }
+      }
+    });
+    setInterval(() => {
+      next.click();
+    }, 1000);
+  }
 });
-document.body.style.setProperty('overflow', 'unset');

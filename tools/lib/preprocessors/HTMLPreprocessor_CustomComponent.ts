@@ -1,7 +1,7 @@
-import { type NodeHTMLParser, ParseHTML } from '../../../src/lib/ericchase/Platform/Node/HTML Processor/ParseHTML.js';
-import type { Path, PathGroup } from '../../../src/lib/ericchase/Platform/Node/Path.js';
-import type { SyncAsync } from '../../../src/lib/ericchase/Utility/Types.js';
-import type { HTMLPreprocessor } from './HTMLPreprocessor.js';
+import { type NodeHTMLParser, ParseHTML } from 'lib/ericchase/Platform/Node/HTML Processor/ParseHTML.js';
+import type { Path, PathGroup } from 'lib/ericchase/Platform/Node/Path.js';
+import type { SyncAsync } from 'lib/ericchase/Utility/Types.js';
+import type { HTMLPreprocessor } from 'tools/lib/preprocessors/HTMLPreprocessor.js';
 
 export class CustomComponentPreprocessor implements HTMLPreprocessor {
   component_loaders = new Map<string, () => SyncAsync<string | undefined>>();
